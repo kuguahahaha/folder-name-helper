@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>文件夹命名助手 - 版本列表</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      padding: 40px 20px;
+      max-width: 800px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 { color: #333; margin-bottom: 10px; font-size: 2rem; }
+    .subtitle { color: #666; margin-bottom: 30px; }
+    .version-list { list-style: none; }
+    .version-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px;
+      margin-bottom: 15px;
+      background: #f8f9ff;
+      border-radius: 12px;
+      border: 2px solid #e0e6ff;
+      transition: all 0.3s ease;
+    }
+    .version-item:hover {
+      transform: translateX(5px);
+      border-color: #667eea;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    }
+    .version-info h3 { color: #667eea; margin-bottom: 5px; }
+    .version-info p { color: #666; font-size: 0.9rem; }
+    .version-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #667eea;
+      color: white;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin-left: 10px;
+    }
+    .version-badge.latest { background: #10b981; }
+    .version-badge.old { background: #6b7280; }
+    .btn {
+      padding: 10px 20px;
+      background: #667eea;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    .btn:hover { background: #5568d3; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📁 文件夹命名助手</h1>
+    <p class="subtitle">选择你要使用的版本</p>
+    
+    <ul class="version-list">
+      <li class="version-item">
+        <div class="version-info">
+          <h3>V1.0.1 <span class="version-badge latest">最新版</span></h3>
+          <p>✨ 视觉优化 + Enter 键生成 + 重置按钮 + Toast 提示</p>
+        </div>
+        <a href="../index.html" class="btn">使用此版本 →</a>
+      </li>
+      
+      <li class="version-item">
+        <div class="version-info">
+          <h3>V1.0.0 <span class="version-badge old">旧版</span></h3>
+          <p>📦 基础功能：日期前缀 + 时间格式化 + 项目名称组合</p>
+        </div>
+        <a href="v1.0.0.html" class="btn">使用此版本 →</a>
+      </li>
+    </ul>
+  </div>
+</body>
+</html>
