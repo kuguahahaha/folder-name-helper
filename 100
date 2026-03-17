@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>文件夹命名助手</title>
+  <style>
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      padding: 30px;
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #f9f9f9;
+    }
+    h2 {
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 12px;
+      background-color: #e9ecef;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    #copyBtn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      background-color: #28a745;
+    }
+    #copyBtn:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <h2>文件夹命名助手</h2>
+
+  <label for="timeInput">输入时间（1416→14_16，905→09_05，14_16→格式保持不变 ）：</label>
+  <input type="text" id="timeInput" placeholder="例如：1416 或 14_05" maxlength="5" />
+
+  <label for="projectInput">请输入项目名称：</label>
+  <input type="text" id="projectInput" placeholder="" />
+
+  <button onclick="generateFolderName()">生成文件夹名称</button>
+
+  <div id="result" style="display:none;"></div>
+  <button id="copyBtn" style="display:none;" onclick="copyToClipboard()">复制到剪贴板</button>
+
+  <script>
+    // 自动填充当前日期（YYYY-MM-DD_）
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const datePrefix = `${year}-${month}-${day}_`;
+
+    // 格式化时间输入（支持 1416 → 14_16，905 → 09_05 等）
+    function normalizeTimeInput(input) {
+      input = input.trim();
+
+      // 已带下划线，直接尝试验证
+      if (input.includes('_')) {
+        const parts = input.split('_');
+        if (parts.length !== 2) return null;
+        let [h, m] = parts;
+        h = h.padStart(2, '0');
+        m = m.padStart(2, '0');
+        return { h, m };
+      }
+
+      // 纯数字情况
+      const clean = input.replace(/\D/g, ''); // 只保留数字
+      if (clean.length === 3) {
+        // 如 905 → 09:05
+        const h = clean[0];
+        const m = clean.substring(1);
+        return {
+          h: h.padStart(2, '0'),
+          m: m.padStart(2, '0')
+        };
+      } else if (clean.length === 4) {
+        // 如 1416 → 14:16
+        const h = clean.substring(0, 2);
+        const m = clean.substring(2);
+        return { h, m };
+      } else {
+        return null; // 无效长度
+      }
+    }
+
+    function isValidTime(h, m) {
+      const hour = parseInt(h, 10);
+      const minute = parseInt(m, 10);
+      return (
+        h.length === 2 &&
+        m.length === 2 &&
+        !isNaN(hour) &&
+        !isNaN(minute) &&
+        hour >= 0 &&
+        hour <= 23 &&
+        minute >= 0 &&
+        minute <= 59
+      );
+    }
+
+    function generateFolderName() {
+      const rawTime = document.getElementById('timeInput').value;
+      const project = document.getElementById('projectInput').value.trim();
+
+      if (!project) {
+        alert('请填写项目名称！');
+        return;
+      }
+
+      const timeObj = normalizeTimeInput(rawTime);
+      if (!timeObj) {
+        alert('时间格式无效！请使用如 1416、905 或 14_16 的格式。');
+        return;
+      }
+
+      const { h, m } = timeObj;
+      if (!isValidTime(h, m)) {
+        alert('时间无效：小时应在 00–23，分钟应在 00–59。');
+        return;
+      }
+
+      const formattedTime = `${h}_${m}`;
+      const folderName = datePrefix + formattedTime + '-' + project;
+
+      const resultDiv = document.getElementById('result');
+      resultDiv.textContent = folderName;
+      resultDiv.style.display = 'block';
+
+      document.getElementById('copyBtn').style.display = 'inline-block';
+    }
+
+    function copyToClipboard() {
+      const text = document.getElementById('result').textContent;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('已复制到剪贴板！');
+        }).catch(() => {
+          fallbackCopy(text);
+        });
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        alert('已复制到剪贴板！');
+      } catch (e) {
+        alert('复制失败，请手动复制：\n' + text);
+      }
+      document.body.removeChild(textarea);
+    }
+  </script>
+</body>
+</html>
