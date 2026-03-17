@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>文件夹命名助手 V1.0.1</title>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --success: #06d6a0;
+      --success-dark: #05bd8c;
+      --warning: #ffd166;
+      --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+      --card-bg: #ffffff;
+      --text-main: #2b2d42;
+      --text-secondary: #6c757d;
+      --border-radius: 10px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --shadow-hover: 0 6px 25px rgba(0,0,0,0.12);
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      padding: 25px 15px;
+      max-width: 650px;
+      margin: 0 auto;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+      padding: 15px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+    }
+    
+    .header h2 {
+      color: var(--primary);
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
+    
+    .header .version {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      background: #eef2ff;
+      padding: 3px 10px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+    
+    .card {
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .card:hover { box-shadow: var(--shadow-hover); }
+    
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 0.95rem;
+    }
+    
+    .input-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    
+    .input-prefix {
+      position: absolute;
+      left: 12px;
+      color: var(--primary);
+      font-size: 1.1rem;
+      pointer-events: none;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px 10px 35px;
+      border: 2px solid #e0e6ef;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background: #fafbfc;
+    }
+    
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+    
+    input[type="text"]::placeholder { color: #adb5bd; }
+    
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+    
+    button {
+      flex: 1;
+      min-width: 120px;
+      padding: 11px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    #generateBtn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+    
+    #generateBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
+    }
+    
+    #resetBtn {
+      background: linear-gradient(135deg, #6c757d, #5a6268);
+      color: white;
+    }
+    
+    #resetBtn:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, #5a6268, #4e555b);
+    }
+    
+    #copyBtn {
+      background: linear-gradient(135deg, var(--success), var(--success-dark));
+      color: white;
+      margin-top: 12px;
+      width: auto;
+      align-self: flex-start;
+    }
+    
+    #copyBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(6, 214, 160, 0.4);
+    }
+    
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background: linear-gradient(135deg, #f8f9ff, #eef2ff);
+      border: 2px solid #d6e0ff;
+      border-radius: 8px;
+      font-family: "Consolas", "Monaco", monospace;
+      font-size: 1.05rem;
+      color: var(--primary-dark);
+      word-break: break-all;
+      display: none;
+      position: relative;
+    }
+    
+    #result::before {
+      content: "📁";
+      position: absolute;
+      left: -8px;
+      top: -8px;
+      background: var(--primary);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* 更新日志区域 */
+    .changelog {
+      margin-top: 25px;
+      padding: 15px;
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    
+    .changelog summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--primary);
+      padding: 5px 0;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .changelog summary::-webkit-details-marker { display: none; }
+    
+    .changelog ul {
+      margin-top: 10px;
+      padding-left: 20px;
+      line-height: 1.8;
+    }
+    
+    .changelog li { margin-bottom: 4px; }
+    
+    .changelog .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #eef2ff;
+      color: var(--primary);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-right: 6px;
+    }
+    
+    /* Toast 提示 */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #333;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    
+    .toast.success { background: var(--success); }
+    
+    /* 响应式适配 */
+    @media (max-width: 480px) {
+      body { padding: 15px 10px; }
+      .card { padding: 20px 15px; }
+      .btn-group { flex-direction: column; }
+      button { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶部标题 -->
+  <div class="header">
+    <h2>📁 文件夹命名助手</h2>
+    <span class="version">V1.0.1</span>
+  </div>
+
+  <!-- 主卡片 -->
+  <div class="card">
+    <label for="timeInput">⏰ 输入时间 <small style="font-weight:normal;color:#6c757d">（1416→14_16，905→09_05）</small></label>
+    <div class="input-group">
+      <span class="input-prefix">🕐</span>
+      <input type="text" id="timeInput" placeholder="例如：1416 或 905 或 14_16" maxlength="5" />
+    </div>
+
+    <label for="projectInput">📝 项目名称 <small style="font-weight:normal;color:#6c757d">（按 Enter 可快速生成）</small></label>
+    <div class="input-group">
+      <span class="input-prefix">🏷️</span>
+      <input type="text" id="projectInput" placeholder="请输入项目名称" />
+    </div>
+
+    <div class="btn-group">
+      <button id="generateBtn" onclick="generateFolderName()">✨ 生成名称</button>
+      <button id="resetBtn" onclick="resetForm()">🔄 重置</button>
+    </div>
+
+    <div id="result"></div>
+    <button id="copyBtn" style="display:none;" onclick="copyToClipboard()">📋 复制结果</button>
+  </div>
+
+  <!-- 更新日志 -->
+  <details class="changelog">
+    <summary>📦 更新日志 <span style="font-weight:normal;font-size:0.85rem;color:#6c757d;margin-left:6px">▼</span></summary>
+    <ul>
+      <li><span class="tag">V1.0.1</span> 页面视觉升级：蓝绿渐变主题 + 卡片动效 + 输入聚焦高亮</li>
+      <li><span class="tag">V1.0.1</span> 交互优化：项目名称输入后按 <strong>Enter</strong> 可直接生成</li>
+      <li><span class="tag">V1.0.1</span> 新增 <strong>重置按钮</strong>，一键清空表单并隐藏结果</li>
+      <li><span class="tag">V1.0.1</span> 复制提示改为顶部 Toast 轻提示，体验更流畅</li>
+      <li><span class="tag">V1.0.0</span> 基础功能：日期前缀 + 时间格式化 + 项目组合 + 复制</li>
+    </ul>
+  </details>
+
+  <!-- Toast 提示容器 -->
+  <div id="toast" class="toast">✅ 已复制到剪贴板！</div>
+
+  <script>
+    // 自动填充当前日期（YYYY-MM-DD_）
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const datePrefix = `${year}-${month}-${day}_`;
+
+    // Enter 键监听 - 项目名称输入框
+    document.getElementById('projectInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' || e.keyCode === 13) {
+        e.preventDefault();
+        generateFolderName();
+      }
+    });
+
+    // 格式化时间输入
+    function normalizeTimeInput(input) {
+      input = input.trim();
+      if (input.includes('_')) {
+        const parts = input.split('_');
+        if (parts.length !== 2) return null;
+        let [h, m] = parts;
+        h = h.padStart(2, '0');
+        m = m.padStart(2, '0');
+        return { h, m };
+      }
+      const clean = input.replace(/\D/g, '');
+      if (clean.length === 3) {
+        return {
+          h: clean[0].padStart(2, '0'),
+          m: clean.substring(1).padStart(2, '0')
+        };
+      } else if (clean.length === 4) {
+        return {
+          h: clean.substring(0, 2),
+          m: clean.substring(2)
+        };
+      }
+      return null;
+    }
+
+    function isValidTime(h, m) {
+      const hour = parseInt(h, 10), minute = parseInt(m, 10);
+      return h.length===2 && m.length===2 && 
+             !isNaN(hour) && !isNaN(minute) &&
+             hour>=0 && hour<=23 && minute>=0 && minute<=59;
+    }
+
+    function generateFolderName() {
+      const rawTime = document.getElementById('timeInput').value;
+      const project = document.getElementById('projectInput').value.trim();
+
+      if (!project) {
+        showToast('⚠️ 请填写项目名称！', 'warning');
+        document.getElementById('projectInput').focus();
+        return;
+      }
+
+      const timeObj = normalizeTimeInput(rawTime);
+      if (!timeObj) {
+        showToast('⚠️ 时间格式无效！试试 1416 / 905 / 14_16', 'warning');
+        return;
+      }
+
+      const { h, m } = timeObj;
+      if (!isValidTime(h, m)) {
+        showToast('⚠️ 时间无效：小时 00-23，分钟 00-59', 'warning');
+        return;
+      }
+
+      const formattedTime = `${h}_${m}`;
+      const folderName = datePrefix + formattedTime + '-' + project;
+
+      const resultDiv = document.getElementById('result');
+      resultDiv.textContent = folderName;
+      resultDiv.style.display = 'block';
+      document.getElementById('copyBtn').style.display = 'inline-flex';
+      
+      // 滚动到结果区域（移动端友好）
+      resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // 重置功能
+    function resetForm() {
+      document.getElementById('timeInput').value = '';
+      document.getElementById('projectInput').value = '';
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('copyBtn').style.display = 'none';
+      document.getElementById('timeInput').focus();
+    }
+
+    // 复制功能 + Toast 提示
+    function copyToClipboard() {
+      const text = document.getElementById('result').textContent;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => showToast('✅ 已复制！', 'success'));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('✅ 已复制！', 'success');
+      } catch (e) {
+        showToast('⚠️ 复制失败，请手动复制', 'warning');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Toast 提示函数
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast show ' + type;
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2000);
+    }
+
+    // 初始化：聚焦时间输入框
+    window.addEventListener('load', () => {
+      document.getElementById('timeInput').focus();
+    });
+  </script>
+</body>
+</html>
