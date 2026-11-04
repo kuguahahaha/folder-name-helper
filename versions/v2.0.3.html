@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>文件夹命名助手 V2.0.3</title>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --success: #06b98b;
+      --success-dark: #059c76;
+      --warning: #c47a00;
+      --danger: #d64545;
+      --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+      --card-bg: #ffffff;
+      --text-main: #2b2d42;
+      --text-secondary: #6c757d;
+      --border-radius: 10px;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --shadow-hover: 0 6px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      padding: 25px 15px;
+      max-width: 700px;
+      margin: 0 auto;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+      padding: 15px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+    }
+
+    .header h2 {
+      color: var(--primary);
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
+
+    .header .version {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      background: #eef2ff;
+      padding: 3px 10px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 25px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .card:hover { box-shadow: var(--shadow-hover); }
+
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-weight: 600;
+      color: var(--text-main);
+      font-size: 0.95rem;
+    }
+
+    label:first-child { margin-top: 0; }
+
+    label small,
+    .helper-text {
+      font-weight: normal;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+    }
+
+    .input-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 12px;
+      color: var(--primary);
+      font-size: 1.1rem;
+      pointer-events: none;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px 10px 35px;
+      border: 2px solid #e0e6ef;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background: #fafbfc;
+      color: var(--text-main);
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+
+    input[type="text"]::placeholder { color: #adb5bd; }
+
+    .target-panel {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 2px solid #d9e7ff;
+      border-radius: 8px;
+      background: #f7faff;
+    }
+
+    .target-value {
+      flex: 1;
+      min-width: 0;
+      color: var(--primary-dark);
+      font-size: 0.9rem;
+      word-break: break-all;
+    }
+
+    .target-value.empty { color: var(--text-secondary); }
+
+    .helper-text {
+      display: block;
+      margin-top: 6px;
+    }
+
+    .btn-group,
+    .result-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+
+    .btn-group button {
+      flex: 1;
+      min-width: 145px;
+      padding: 11px 16px;
+    }
+
+    #generateBtn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #ffffff;
+    }
+
+    #createBtn {
+      background: linear-gradient(135deg, var(--success), var(--success-dark));
+      color: #ffffff;
+    }
+
+    #resetBtn {
+      background: linear-gradient(135deg, #6c757d, #5a6268);
+      color: #ffffff;
+    }
+
+    #choosePathBtn {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      background: #ffffff;
+      color: var(--primary);
+      border: 1px solid #b8c8ff;
+      white-space: nowrap;
+    }
+
+    #copyBtn {
+      flex: 1 1 auto;
+      min-width: 110px;
+      padding: 11px 10px;
+      background: #eafaf5;
+      color: #087a5e;
+      border: 1px solid #9de0cd;
+    }
+
+    button:hover { transform: translateY(-2px); }
+    #generateBtn:hover { box-shadow: 0 4px 15px rgba(67, 97, 238, 0.35); }
+    #createBtn:hover { box-shadow: 0 4px 15px rgba(6, 185, 139, 0.35); }
+    #choosePathBtn:hover { background: #eef3ff; }
+
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background: linear-gradient(135deg, #f8f9ff, #eef2ff);
+      border: 2px solid #d6e0ff;
+      border-radius: 8px;
+      font-family: "Consolas", "Monaco", monospace;
+      font-size: 1.05rem;
+      color: var(--primary-dark);
+      word-break: break-all;
+      display: none;
+      position: relative;
+    }
+
+    #result::before {
+      content: "📁";
+      position: absolute;
+      left: -8px;
+      top: -8px;
+      background: var(--primary);
+      color: #ffffff;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .result-actions { display: none; margin-top: 10px; }
+
+    .create-status {
+      display: none;
+      margin-top: 14px;
+      padding: 11px 13px;
+      border: 1px solid #9de0cd;
+      border-radius: 8px;
+      background: #edfbf7;
+      color: #087a5e;
+      font-size: 0.9rem;
+      word-break: break-all;
+    }
+
+    .create-status.warning {
+      border-color: #f0cd88;
+      background: #fff8e8;
+      color: #916000;
+    }
+
+    /* ===== 常用位置收藏栏（重置按钮下方） ===== */
+    .fav-bar {
+      display: none;
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px dashed #b8c8ff;
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .fav-bar .fav-title {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .fav-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .fav-item {
+      display: inline-flex;
+      align-items: stretch;
+      border: 1px solid #b8c8ff;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .fav-item .fav-pick {
+      border: none;
+      border-radius: 0;
+      padding: 6px 10px;
+      background: #ffffff;
+      color: var(--primary);
+      font-size: 0.85rem;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+      text-align: left;
+    }
+
+    .fav-item .fav-pick:hover { background: #eef3ff; transform: none; }
+
+    .fav-item .fav-del {
+      border: none;
+      border-left: 1px solid #d6e0ff;
+      border-radius: 0;
+      padding: 6px 8px;
+      background: #ffffff;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .fav-item .fav-del:hover { background: #fdeeee; color: var(--danger); transform: none; }
+
+    #addFavBtn {
+      padding: 6px 10px;
+      background: #fff8e8;
+      color: #916000;
+      border: 1px dashed #e0c27a;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    #addFavBtn:hover { background: #fdf0d2; transform: none; }
+
+    .changelog {
+      margin-top: 25px;
+      padding: 15px;
+      background: #ffffff;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .changelog summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--primary);
+      padding: 5px 0;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .changelog summary::-webkit-details-marker { display: none; }
+    .changelog ul { margin-top: 10px; padding-left: 20px; line-height: 1.8; }
+    .changelog li { margin-bottom: 4px; }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #eef2ff;
+      color: var(--primary);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-right: 6px;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #333333;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: calc(100% - 30px);
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.success { background: var(--success); }
+    .toast.warning { background: var(--warning); }
+    .toast.error { background: var(--danger); }
+
+    @media (max-width: 560px) {
+      body { padding: 15px 10px; }
+      .card { padding: 20px 15px; }
+      .btn-group { flex-direction: column; }
+      .btn-group button { min-width: 100%; }
+      .target-panel { align-items: stretch; flex-direction: column; }
+      #choosePathBtn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>📁 文件夹命名助手</h2>
+    <span class="version">V2.0.3 · 浏览器版</span>
+  </div>
+
+  <div class="card">
+    <label for="dateInput">📅 输入日期 <small>（留空=今天，0811 或 20260811）</small></label>
+    <div class="input-group">
+      <span class="input-prefix">📅</span>
+      <input type="text" id="dateInput" placeholder="例如：0811 或 20260811 或 08-11" maxlength="10" />
+    </div>
+
+    <label for="timeInput">⏰ 输入时间 <small>（1416→14_16，905→09_05）</small></label>
+    <div class="input-group">
+      <span class="input-prefix">🕐</span>
+      <input type="text" id="timeInput" placeholder="例如：1416 或 905 或 14_16" maxlength="5" />
+    </div>
+
+    <label for="projectInput">📝 项目名称 <small>（按 Enter 可快速生成）</small></label>
+    <div class="input-group">
+      <span class="input-prefix">🏷️</span>
+      <input type="text" id="projectInput" placeholder="请输入项目名称" />
+    </div>
+
+    <label>📂 目标位置 <small>（首次选择后，本次打开期间可连续使用）</small></label>
+    <div class="target-panel">
+      <div id="targetPathLabel" class="target-value empty">尚未选择；点击“选择位置”或“新建文件夹”</div>
+      <button id="choosePathBtn" type="button" onclick="chooseTargetDirectory()">📂 选择位置</button>
+    </div>
+    <span class="helper-text">浏览器安全机制不允许输入本机完整路径；需要手输/粘贴路径、自动记忆和创建后打开时，请使用 HTA 本地版。</span>
+
+    <div class="btn-group">
+      <button id="generateBtn" type="button" onclick="generateFolderName()">✨ 生成名称</button>
+      <button id="copyBtn" type="button" onclick="copyToClipboard()" style="display: none;">📋 复制结果</button>
+      <button id="createBtn" type="button" onclick="createFolderDirectly()">➕ 新建文件夹</button>
+      <button id="resetBtn" type="button" onclick="resetForm()">🔄 重置</button>
+    </div>
+
+    <div id="favBar" class="fav-bar">
+      <div class="fav-title">★ 常用位置（点击恢复使用，收藏会跨会话保存）</div>
+      <div id="favList" class="fav-list"></div>
+      <div class="fav-list" style="margin-top:8px;">
+        <button id="addFavBtn" type="button" onclick="addFavorite()">★ 收藏当前位置</button>
+      </div>
+    </div>
+
+    <div id="result"></div>
+    <div id="createStatus" class="create-status"></div>
+  </div>
+
+  <details class="changelog">
+    <summary>📦 更新日志 <span style="font-weight:normal;font-size:0.85rem;color:#6c757d;margin-left:6px">▼</span></summary>
+    <ul>
+      <li><span class="tag">V2.0.3</span> <strong>“复制结果”按钮上移</strong>：与“生成名称”同排放置，生成后即可一键复制，布局更紧凑</li>
+      <li><span class="tag">V2.0.2</span> 重置按钮下方新增<strong>“常用位置”收藏栏</strong>：选择过的目录可收藏，点击快速恢复使用，支持删除；收藏跨会话保存</li>
+      <li><span class="tag">V2.0.1</span> 新增<strong>“新建文件夹”</strong>：自动生成名称并在所选目录中直接创建；当前会话复用目标位置，并加入非法字符、重复目录和权限提示</li>
+      <li><span class="tag">V2.0.0</span> 新增<strong>日期输入框</strong>（非必填），兼容 0811 / 20260811 / 08_11 / 2026-08-11 等写法；留空取系统当天，并加入日期合法性校验</li>
+      <li><span class="tag">V1.0.1</span> 页面视觉升级；支持 Enter 快速生成、重置按钮和 Toast 轻提示</li>
+      <li><span class="tag">V1.0.0</span> 基础功能：日期前缀 + 时间格式化 + 项目组合 + 复制</li>
+    </ul>
+  </details>
+
+  <div id="toast" class="toast">操作完成</div>
+
+  <script>
+    const now = new Date();
+    const sysYear = now.getFullYear();
+    const sysMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const sysDay = String(now.getDate()).padStart(2, '0');
+    const systemDate = `${sysYear}-${sysMonth}-${sysDay}`;
+    let selectedDirectoryHandle = null;
+    let favorites = [];
+    let toastTimer = null;
+
+    document.getElementById('projectInput').addEventListener('keypress', function (event) {
+      if (event.key === 'Enter' || event.keyCode === 13) {
+        event.preventDefault();
+        generateFolderName();
+      }
+    });
+
+    function normalizeDateInput(input) {
+      const clean = input.trim().replace(/\D/g, '');
+      if (!clean) return null;
+      if (clean.length === 4) {
+        return { y: String(sysYear), m: clean.substring(0, 2), d: clean.substring(2, 4) };
+      }
+      if (clean.length === 8) {
+        return { y: clean.substring(0, 4), m: clean.substring(4, 6), d: clean.substring(6, 8) };
+      }
+      return null;
+    }
+
+    function isValidDate(y, m, d) {
+      const year = parseInt(y, 10);
+      const month = parseInt(m, 10);
+      const day = parseInt(d, 10);
+      if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) return false;
+      if (month < 1 || month > 12) return false;
+      return day >= 1 && day <= new Date(year, month, 0).getDate();
+    }
+
+    function normalizeTimeInput(input) {
+      const raw = input.trim();
+      if (raw.includes('_')) {
+        const parts = raw.split('_');
+        if (parts.length !== 2) return null;
+        return { h: parts[0].padStart(2, '0'), m: parts[1].padStart(2, '0') };
+      }
+      const clean = raw.replace(/\D/g, '');
+      if (clean.length === 3) {
+        return { h: clean[0].padStart(2, '0'), m: clean.substring(1).padStart(2, '0') };
+      }
+      if (clean.length === 4) {
+        return { h: clean.substring(0, 2), m: clean.substring(2) };
+      }
+      return null;
+    }
+
+    function isValidTime(h, m) {
+      const hour = parseInt(h, 10);
+      const minute = parseInt(m, 10);
+      return h.length === 2 && m.length === 2 &&
+        !Number.isNaN(hour) && !Number.isNaN(minute) &&
+        hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+    }
+
+    function hasInvalidFolderChars(name) {
+      return /[<>:"/\\|?*\x00-\x1F]/.test(name) || /[. ]$/.test(name);
+    }
+
+    function buildFolderName() {
+      const rawDate = document.getElementById('dateInput').value;
+      const rawTime = document.getElementById('timeInput').value;
+      const project = document.getElementById('projectInput').value.trim();
+
+      if (!project) {
+        showToast('请填写项目名称', 'warning');
+        document.getElementById('projectInput').focus();
+        return null;
+      }
+      if (hasInvalidFolderChars(project)) {
+        showToast('项目名称含 Windows 文件夹禁用字符，或以点/空格结尾', 'warning');
+        document.getElementById('projectInput').focus();
+        return null;
+      }
+
+      let dateStr = systemDate;
+      if (rawDate.trim()) {
+        const dateObj = normalizeDateInput(rawDate);
+        if (!dateObj) {
+          showToast('日期格式无效，请试试 0811 或 20260811', 'warning');
+          document.getElementById('dateInput').focus();
+          return null;
+        }
+        if (!isValidDate(dateObj.y, dateObj.m, dateObj.d)) {
+          showToast('日期无效，请检查月份和日期', 'warning');
+          document.getElementById('dateInput').focus();
+          return null;
+        }
+        dateStr = `${dateObj.y}-${dateObj.m}-${dateObj.d}`;
+      }
+
+      const timeObj = normalizeTimeInput(rawTime);
+      if (!timeObj) {
+        showToast('时间格式无效，请试试 1416 / 905 / 14_16', 'warning');
+        document.getElementById('timeInput').focus();
+        return null;
+      }
+      if (!isValidTime(timeObj.h, timeObj.m)) {
+        showToast('时间无效：小时 00-23，分钟 00-59', 'warning');
+        document.getElementById('timeInput').focus();
+        return null;
+      }
+
+      return `${dateStr}_${timeObj.h}_${timeObj.m}-${project}`;
+    }
+
+    function renderFolderName(folderName) {
+      const result = document.getElementById('result');
+      result.textContent = folderName;
+      result.style.display = 'block';
+      document.getElementById('copyBtn').style.display = 'inline-flex';
+    }
+
+    function generateFolderName() {
+      const folderName = buildFolderName();
+      if (!folderName) return null;
+      renderFolderName(folderName);
+      return folderName;
+    }
+
+    function supportsDirectoryPicker() {
+      return typeof window.showDirectoryPicker === 'function';
+    }
+
+    async function chooseTargetDirectory() {
+      if (!supportsDirectoryPicker()) {
+        showToast('当前浏览器不支持直接新建，请改用 Edge/Chrome 或 HTA 本地版', 'warning');
+        return null;
+      }
+
+      try {
+        const handle = await window.showDirectoryPicker({
+          id: 'folder-name-helper-target',
+          mode: 'readwrite'
+        });
+        selectedDirectoryHandle = handle;
+        const targetLabel = document.getElementById('targetPathLabel');
+        targetLabel.textContent = `已选择：${handle.name}（浏览器不会暴露完整路径）`;
+        targetLabel.classList.remove('empty');
+        showToast('目标位置已选择', 'success');
+        return handle;
+      } catch (error) {
+        if (error && error.name === 'AbortError') {
+          showToast('已取消选择位置', 'warning');
+          return null;
+        }
+        showToast(`选择位置失败：${error.message || error}`, 'error');
+        return null;
+      }
+    }
+
+    async function ensureWritePermission(handle) {
+      const options = { mode: 'readwrite' };
+      if (handle.queryPermission && await handle.queryPermission(options) === 'granted') return true;
+      if (handle.requestPermission && await handle.requestPermission(options) === 'granted') return true;
+      return false;
+    }
+
+    /* ===== 常用位置收藏（IndexedDB，跨会话保存） ===== */
+    const FAV_DB_NAME = 'folder-name-helper';
+    const FAV_STORE = 'favorites';
+
+    function openFavDb() {
+      return new Promise(function (resolve, reject) {
+        const request = indexedDB.open(FAV_DB_NAME, 1);
+        request.onupgradeneeded = function () {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(FAV_STORE)) {
+            db.createObjectStore(FAV_STORE, { keyPath: 'name' });
+          }
+        };
+        request.onsuccess = function () { resolve(request.result); };
+        request.onerror = function () { reject(request.error); };
+      });
+    }
+
+    function idbGetAll() {
+      return openFavDb().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          const tx = db.transaction(FAV_STORE, 'readonly');
+          const request = tx.objectStore(FAV_STORE).getAll();
+          request.onsuccess = function () { resolve(request.result || []); };
+          request.onerror = function () { reject(request.error); };
+        });
+      });
+    }
+
+    function idbPut(record) {
+      return openFavDb().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          const tx = db.transaction(FAV_STORE, 'readwrite');
+          tx.objectStore(FAV_STORE).put(record);
+          tx.oncomplete = function () { resolve(true); };
+          tx.onerror = function () { reject(tx.error); };
+        });
+      });
+    }
+
+    function idbDelete(name) {
+      return openFavDb().then(function (db) {
+        return new Promise(function (resolve, reject) {
+          const tx = db.transaction(FAV_STORE, 'readwrite');
+          tx.objectStore(FAV_STORE).delete(name);
+          tx.oncomplete = function () { resolve(true); };
+          tx.onerror = function () { reject(tx.error); };
+        });
+      });
+    }
+
+    async function loadFavorites() {
+      if (!window.indexedDB) return;
+      try {
+        favorites = await idbGetAll();
+        renderFavorites();
+      } catch (error) {
+        favorites = [];
+      }
+    }
+
+    function renderFavorites() {
+      const bar = document.getElementById('favBar');
+      const list = document.getElementById('favList');
+      while (list.firstChild) list.removeChild(list.firstChild);
+
+      if (!favorites.length) {
+        bar.style.display = 'none';
+        return;
+      }
+      bar.style.display = 'block';
+
+      favorites.forEach(function (fav, index) {
+        const item = document.createElement('div');
+        item.className = 'fav-item';
+
+        const pick = document.createElement('button');
+        pick.type = 'button';
+        pick.className = 'fav-pick';
+        pick.title = `使用“${fav.name}”作为目标位置`;
+        pick.textContent = `📁 ${fav.name}`;
+        pick.addEventListener('click', function () { selectFavorite(index); });
+
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'fav-del';
+        del.title = `删除收藏“${fav.name}”`;
+        del.textContent = '×';
+        del.addEventListener('click', function () { removeFavorite(index); });
+
+        item.appendChild(pick);
+        item.appendChild(del);
+        list.appendChild(item);
+      });
+    }
+
+    async function addFavorite() {
+      if (!selectedDirectoryHandle) {
+        showToast('请先选择目标位置，再收藏', 'warning');
+        return;
+      }
+      if (favorites.some(function (fav) { return fav.name === selectedDirectoryHandle.name; })) {
+        showToast('该位置已在收藏中', 'warning');
+        return;
+      }
+      const record = { name: selectedDirectoryHandle.name, handle: selectedDirectoryHandle };
+      try {
+        await idbPut(record);
+        favorites.push(record);
+        renderFavorites();
+        showToast('已收藏当前位置', 'success');
+      } catch (error) {
+        showToast('收藏保存失败：' + (error.message || error), 'error');
+      }
+    }
+
+    async function selectFavorite(index) {
+      const fav = favorites[index];
+      if (!fav) return;
+      try {
+        if (!await ensureWritePermission(fav.handle)) {
+          showToast('没有该位置的写入权限', 'warning');
+          return;
+        }
+        selectedDirectoryHandle = fav.handle;
+        const targetLabel = document.getElementById('targetPathLabel');
+        targetLabel.textContent = `已选择：${fav.name}（浏览器不会暴露完整路径）`;
+        targetLabel.classList.remove('empty');
+        showToast('已切换到常用位置', 'success');
+      } catch (error) {
+        showToast('恢复常用位置失败：' + (error.message || error), 'error');
+      }
+    }
+
+    async function removeFavorite(index) {
+      const fav = favorites[index];
+      if (!fav) return;
+      try {
+        await idbDelete(fav.name);
+        favorites.splice(index, 1);
+        if (selectedDirectoryHandle && selectedDirectoryHandle.name === fav.name) {
+          selectedDirectoryHandle = null;
+          const targetLabel = document.getElementById('targetPathLabel');
+          targetLabel.textContent = '尚未选择；点击“选择位置”或“新建文件夹”';
+          targetLabel.classList.add('empty');
+        }
+        renderFavorites();
+        showToast('已删除该收藏', 'success');
+      } catch (error) {
+        showToast('删除收藏失败：' + (error.message || error), 'error');
+      }
+    }
+
+    async function createFolderDirectly() {
+      const folderName = generateFolderName();
+      if (!folderName) return;
+
+      let handle = selectedDirectoryHandle;
+      if (!handle) handle = await chooseTargetDirectory();
+      if (!handle) return;
+
+      try {
+        if (!await ensureWritePermission(handle)) {
+          showToast('没有目标位置的写入权限', 'warning');
+          return;
+        }
+
+        try {
+          await handle.getDirectoryHandle(folderName);
+          showCreateStatus(`目标目录中已存在：${folderName}`, true);
+          showToast('同名文件夹已存在，未重复创建', 'warning');
+          return;
+        } catch (error) {
+          if (!error || error.name !== 'NotFoundError') throw error;
+        }
+
+        await handle.getDirectoryHandle(folderName, { create: true });
+        showCreateStatus(`已在“${handle.name}”中创建：${folderName}`, false);
+        showToast('文件夹创建成功', 'success');
+      } catch (error) {
+        showCreateStatus(`创建失败：${error.message || error}`, true);
+        showToast('创建失败，请检查目录权限或改用 HTA 本地版', 'error');
+      }
+    }
+
+    function showCreateStatus(message, isWarning) {
+      const status = document.getElementById('createStatus');
+      status.textContent = message;
+      status.className = `create-status${isWarning ? ' warning' : ''}`;
+      status.style.display = 'block';
+    }
+
+    function resetForm() {
+      document.getElementById('dateInput').value = '';
+      document.getElementById('timeInput').value = '';
+      document.getElementById('projectInput').value = '';
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('copyBtn').style.display = 'none';
+      document.getElementById('createStatus').style.display = 'none';
+      document.getElementById('dateInput').focus();
+      showToast('已重置命名内容，目标位置与收藏保持不变', 'success');
+    }
+
+    async function copyToClipboard() {
+      const text = document.getElementById('result').textContent;
+      if (!text) return;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          fallbackCopy(text);
+        }
+        showToast('已复制', 'success');
+      } catch (error) {
+        if (fallbackCopy(text)) showToast('已复制', 'success');
+        else showToast('复制失败，请手动复制', 'warning');
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (error) { ok = false; }
+      document.body.removeChild(textarea);
+      return ok;
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast show ${type}`;
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () {
+        toast.className = `toast ${type}`;
+      }, 2400);
+    }
+
+    window.addEventListener('load', function () {
+      document.getElementById('dateInput').focus();
+      if (!supportsDirectoryPicker()) {
+        document.getElementById('targetPathLabel').textContent = '当前浏览器不支持直接创建；生成与复制功能仍可使用';
+      }
+      loadFavorites();
+    });
+  </script>
+</body>
+</html>
