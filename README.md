@@ -69,6 +69,8 @@ V1.0.0
 |---|---|
 | 最新版（v2.0.2） | https://kuguahahaha.github.io/folder-name-helper/ |
 | 版本列表（全部历史版本） | https://kuguahahaha.github.io/folder-name-helper/versions/ |
+| v2.0.4 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.4.html |
+| v2.0.4 Windows 版下载 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.4.hta |
 | v2.0.3 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.3.html |
 | v2.0.3 Windows 版下载 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.3.hta |
 | v2.0.2 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.2.html |
@@ -90,3 +92,7 @@ V1.0.0
 ## 📐 V2.0.3（2026-11-05）
 • 「复制结果」按钮上移：与「生成名称」同排，生成即可一键复制
 • 同步更新 Windows 版 (.hta) 下载
+
+## 🕐 V2.0.4（2026-11-05）
+• 时间留空自动取当前时间：日期、时间都不填时，只填项目名称即可生成「今天 + 当前时间」的文件夹名
+• 单独指定日期、时间留空时，取指定日期加当前时间
