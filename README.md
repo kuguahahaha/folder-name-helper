@@ -69,6 +69,8 @@ V1.0.0
 |---|---|
 | 最新版（v2.0.2） | https://kuguahahaha.github.io/folder-name-helper/ |
 | 版本列表（全部历史版本） | https://kuguahahaha.github.io/folder-name-helper/versions/ |
+| v2.0.3 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.3.html |
+| v2.0.3 Windows 版下载 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.3.hta |
 | v2.0.2 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.2.html |
 | v2.0.1 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.1.html |
 | v2.0.0 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.0.html |
@@ -84,3 +86,7 @@ V1.0.0
 ## 🚀 V2.0.1（2026-10-30）
 • 新增「新建文件夹」：自动校验输入、生成名称并直接在目标目录创建
 • 非法字符 / 同名目录 / 路径存在性 / 写入权限提示
+
+## 📐 V2.0.3（2026-11-05）
+• 「复制结果」按钮上移：与「生成名称」同排，生成即可一键复制
+• 同步更新 Windows 版 (.hta) 下载
