@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>文件夹命名助手 V2.0.3</title>
+  <title>文件夹命名助手 V2.0.4</title>
   <style>
     :root {
       --primary: #4361ee;
@@ -403,7 +403,7 @@
 <body>
   <div class="header">
     <h2>📁 文件夹命名助手</h2>
-    <span class="version">V2.0.3 · 浏览器版</span>
+    <span class="version">V2.0.4 · 浏览器版</span>
   </div>
 
   <div class="card">
@@ -413,7 +413,7 @@
       <input type="text" id="dateInput" placeholder="例如：0811 或 20260811 或 08-11" maxlength="10" />
     </div>
 
-    <label for="timeInput">⏰ 输入时间 <small>（1416→14_16，905→09_05）</small></label>
+    <label for="timeInput">⏰ 输入时间 <small>（留空=当前时间，1416→14_16，905→09_05）</small></label>
     <div class="input-group">
       <span class="input-prefix">🕐</span>
       <input type="text" id="timeInput" placeholder="例如：1416 或 905 或 14_16" maxlength="5" />
@@ -454,6 +454,7 @@
   <details class="changelog">
     <summary>📦 更新日志 <span style="font-weight:normal;font-size:0.85rem;color:#6c757d;margin-left:6px">▼</span></summary>
     <ul>
+      <li><span class="tag">V2.0.4</span> <strong>时间留空自动取当前时间</strong>：日期、时间都不填时，只填项目名称即可生成“今天 + 当前时间”的文件夹名</li>
       <li><span class="tag">V2.0.3</span> <strong>“复制结果”按钮上移</strong>：与“生成名称”同排放置，生成后即可一键复制，布局更紧凑</li>
       <li><span class="tag">V2.0.2</span> 重置按钮下方新增<strong>“常用位置”收藏栏</strong>：选择过的目录可收藏，点击快速恢复使用，支持删除；收藏跨会话保存</li>
       <li><span class="tag">V2.0.1</span> 新增<strong>“新建文件夹”</strong>：自动生成名称并在所选目录中直接创建；当前会话复用目标位置，并加入非法字符、重复目录和权限提示</li>
@@ -470,6 +471,8 @@
     const sysYear = now.getFullYear();
     const sysMonth = String(now.getMonth() + 1).padStart(2, '0');
     const sysDay = String(now.getDate()).padStart(2, '0');
+    const sysHour = String(now.getHours()).padStart(2, '0');
+    const sysMinute = String(now.getMinutes()).padStart(2, '0');
     const systemDate = `${sysYear}-${sysMonth}-${sysDay}`;
     let selectedDirectoryHandle = null;
     let favorites = [];
@@ -564,7 +567,11 @@
         dateStr = `${dateObj.y}-${dateObj.m}-${dateObj.d}`;
       }
 
-      const timeObj = normalizeTimeInput(rawTime);
+      let timeObj = normalizeTimeInput(rawTime);
+      if (!timeObj && !rawTime.trim()) {
+        /* 时间留空：直接取当前时间 */
+        timeObj = { h: sysHour, m: sysMinute };
+      }
       if (!timeObj) {
         showToast('时间格式无效，请试试 1416 / 905 / 14_16', 'warning');
         document.getElementById('timeInput').focus();
