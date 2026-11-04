@@ -1,0 +1,835 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>文件夹命名助手 V2.0.2 - 本地版</title>
+<HTA:APPLICATION
+  ID="FolderNameHelper"
+  APPLICATIONNAME="文件夹命名助手 V2.0.2"
+  BORDER="thin"
+  CAPTION="yes"
+  SHOWINTASKBAR="yes"
+  SINGLEINSTANCE="yes"
+  SYSMENU="yes"
+  WINDOWSTATE="normal"
+  SCROLL="yes"
+  MAXIMIZEBUTTON="no"
+  MINIMIZEBUTTON="yes"
+  CONTEXTMENU="yes"
+/>
+<style>
+  /* 传统 CSS + ES5，兼容 mshta 的 IE11 引擎 */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #eef2f8;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+    color: #2b2d42;
+    line-height: 1.6;
+    font-size: 14px;
+    padding: 20px 14px;
+  }
+
+  .wrap { max-width: 680px; margin: 0 auto; }
+
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 14px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  .header h2 { color: #4361ee; font-size: 20px; margin-bottom: 5px; }
+  .header .version {
+    font-size: 12px;
+    color: #6c757d;
+    background: #eef2ff;
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+
+  .card {
+    background: #ffffff;
+    padding: 22px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  label {
+    display: block;
+    margin: 16px 0 7px 0;
+    font-weight: bold;
+    color: #2b2d42;
+    font-size: 14px;
+  }
+
+  label.first { margin-top: 0; }
+  label small, .helper-text { font-weight: normal; color: #6c757d; font-size: 12px; }
+  .input-group { position: relative; }
+
+  .input-prefix {
+    position: absolute;
+    left: 11px;
+    top: 9px;
+    font-size: 15px;
+    color: #4361ee;
+    line-height: 22px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    border: 2px solid #e0e6ef;
+    border-radius: 8px;
+    font-size: 15px;
+    background: #fafbfc;
+    color: #2b2d42;
+    font-family: "Microsoft YaHei", sans-serif;
+  }
+
+  input[type="text"]:focus { outline: none; border-color: #4361ee; background: #ffffff; }
+  input[type="text"]:-ms-input-placeholder { color: #adb5bd; }
+
+  .target-row { white-space: nowrap; }
+  .target-input-wrap { position: relative; display: inline-block; width: 76%; vertical-align: top; }
+  #browseBtn {
+    width: 22%;
+    margin-left: 2%;
+    padding: 10px 6px;
+    background: #eef3ff;
+    color: #3654c7;
+    border: 1px solid #b8c8ff;
+  }
+  .helper-text { display: block; margin-top: 6px; }
+
+  .btn-group { margin-top: 20px; white-space: nowrap; }
+  button {
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: "Microsoft YaHei", sans-serif;
+    padding: 10px 10px;
+    cursor: pointer;
+    color: #ffffff;
+  }
+
+  #generateBtn {
+    width: 32%;
+    background: #4361ee;
+    background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+  }
+  #createBtn {
+    width: 32%;
+    margin-left: 2%;
+    background: #06b98b;
+    background: linear-gradient(135deg, #06b98b 0%, #059c76 100%);
+  }
+  #resetBtn {
+    width: 30%;
+    margin-left: 2%;
+    background: #6c757d;
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  }
+  #generateBtn:hover { background: #3a56d4; }
+  #createBtn:hover { background: #059c76; }
+  #resetBtn:hover { background: #5a6268; }
+  #browseBtn:hover { background: #dfe8ff; }
+
+  #copyBtn, #openBtn {
+    display: none;
+    width: auto;
+    margin-top: 10px;
+  }
+  #copyBtn { background: #4361ee; }
+  #openBtn { margin-left: 8px; background: #06a37a; }
+
+  #result {
+    margin-top: 18px;
+    padding: 14px;
+    background: #eef2ff;
+    background: linear-gradient(135deg, #f8f9ff 0%, #eef2ff 100%);
+    border: 2px solid #d6e0ff;
+    border-radius: 8px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 15px;
+    color: #3a56d4;
+    word-wrap: break-word;
+    word-break: break-all;
+    display: none;
+    position: relative;
+  }
+
+  #result:before {
+    content: "📁";
+    position: absolute;
+    left: -8px;
+    top: -8px;
+    background: #4361ee;
+    color: #ffffff;
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    font-size: 12px;
+    line-height: 24px;
+    text-align: center;
+  }
+
+  .create-status {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid #9de0cd;
+    border-radius: 8px;
+    background: #edfbf7;
+    color: #087a5e;
+    font-size: 12px;
+    word-wrap: break-word;
+    word-break: break-all;
+  }
+  .create-status.warning { border-color: #f0cd88; background: #fff8e8; color: #916000; }
+
+  /* ===== 常用位置收藏栏（重置按钮下方） ===== */
+  .fav-row {
+    display: none;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border: 1px dashed #b8c8ff;
+    border-radius: 8px;
+    background: #fbfcff;
+  }
+
+  .fav-title { font-size: 12px; color: #6c757d; margin-bottom: 8px; }
+  .fav-list { line-height: 2; }
+
+  .fav-btn {
+    display: inline-block;
+    border: 1px solid #b8c8ff;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #3654c7;
+    font-size: 12px;
+    padding: 4px 8px;
+    margin: 0 4px 4px 0;
+  }
+  .fav-btn:hover { background: #eef3ff; }
+
+  .fav-del {
+    display: inline-block;
+    border: 1px solid #d6e0ff;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #6c757d;
+    font-size: 12px;
+    padding: 4px 7px;
+    margin: 0 8px 4px 0;
+  }
+  .fav-del:hover { background: #fdeeee; color: #c0392b; }
+
+  .fav-add {
+    display: inline-block;
+    border: 1px dashed #e0c27a;
+    border-radius: 6px;
+    background: #fff8e8;
+    color: #916000;
+    font-size: 12px;
+    padding: 4px 10px;
+    margin: 0 4px 4px 0;
+  }
+  .fav-add:hover { background: #fdf0d2; }
+
+  .changelog {
+    margin-top: 20px;
+    padding: 14px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    font-size: 12px;
+    color: #6c757d;
+  }
+  .changelog-title { cursor: pointer; font-weight: bold; color: #4361ee; font-size: 13px; }
+  .changelog-body { display: none; margin-top: 8px; }
+  .changelog-body ul { padding-left: 18px; line-height: 1.9; }
+  .changelog-body li { margin-bottom: 4px; }
+  .tag {
+    display: inline-block;
+    padding: 2px 7px;
+    background: #eef2ff;
+    color: #4361ee;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-right: 5px;
+  }
+
+  .toast {
+    position: fixed;
+    top: -90px;
+    left: 50%;
+    -ms-transform: translateX(-50%);
+    transform: translateX(-50%);
+    background: #333333;
+    color: #ffffff;
+    padding: 9px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    white-space: nowrap;
+    z-index: 1000;
+    transition: top 0.3s ease;
+  }
+  .toast.show { top: 18px; }
+  .toast.success { background: #06a37a; }
+  .toast.warning { background: #b7791f; }
+  .toast.error { background: #c0392b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h2>📁 文件夹命名助手</h2>
+    <span class="version">V2.0.2 本地版</span>
+  </div>
+
+  <div class="card">
+    <label class="first" for="dateInput">📅 输入日期 <small>（留空=今天，0811 或 20260811）</small></label>
+    <div class="input-group">
+      <span class="input-prefix">📅</span>
+      <input type="text" id="dateInput" placeholder="例如：0811 或 20260811 或 08-11" maxlength="10" />
+    </div>
+
+    <label for="timeInput">⏰ 输入时间 <small>（1416→14_16，905→09_05）</small></label>
+    <div class="input-group">
+      <span class="input-prefix">🕐</span>
+      <input type="text" id="timeInput" placeholder="例如：1416 或 905 或 14_16" maxlength="5" />
+    </div>
+
+    <label for="projectInput">📝 项目名称 <small>（按 Enter 可快速生成）</small></label>
+    <div class="input-group">
+      <span class="input-prefix">🏷️</span>
+      <input type="text" id="projectInput" placeholder="请输入项目名称" />
+    </div>
+
+    <label for="targetPathInput">📂 目标路径 <small>（可手输/粘贴，或点浏览选择）</small></label>
+    <div class="target-row">
+      <div class="target-input-wrap">
+        <span class="input-prefix">📍</span>
+        <input type="text" id="targetPathInput" placeholder="例如：D:\\项目资料（留空时新建会自动弹出选择框）" />
+      </div><button id="browseBtn" type="button" onclick="chooseTargetPath()">📂 浏览</button>
+    </div>
+    <span class="helper-text">目标路径会在本机记住；“重置”只清空命名内容，不清空目标路径和收藏。</span>
+
+    <div class="btn-group">
+      <button id="generateBtn" type="button" onclick="generateFolderName()">✨ 生成名称</button><button id="createBtn" type="button" onclick="createFolderDirectly()">➕ 新建文件夹</button><button id="resetBtn" type="button" onclick="resetForm()">🔄 重置</button>
+    </div>
+
+    <div id="favRow" class="fav-row">
+      <div class="fav-title">★ 常用位置（点击填入目标路径，收藏保存在本机）</div>
+      <div id="favList" class="fav-list"></div>
+    </div>
+
+    <div id="result"></div>
+    <button id="copyBtn" type="button" onclick="copyToClipboard()">📋 复制结果</button><button id="openBtn" type="button" onclick="openCreatedFolder()">📂 打开文件夹</button>
+    <div id="createStatus" class="create-status"></div>
+  </div>
+
+  <div class="changelog">
+    <div class="changelog-title" onclick="toggleChangelog()">📦 更新日志 <span id="clArrow">▼</span></div>
+    <div class="changelog-body" id="clBody">
+      <ul>
+        <li><span class="tag">V2.0.2</span> 重置按钮下方新增<strong>“常用位置”收藏栏</strong>：可添加多个常用目录，点击快速填入目标路径，支持删除并跨会话保存；首次使用自动预置桌面、我的文档等</li>
+        <li><span class="tag">V2.0.1</span> 新增<strong>“新建文件夹”</strong>：支持手输/粘贴目标路径或浏览选择，自动生成名称并直接创建；记忆上次路径、创建后可直接打开，并加入非法字符、重复目录和权限提示</li>
+        <li><span class="tag">V2.0.0</span> 新增<strong>日期输入框</strong>与日期合法性校验；同步推出 HTA 本地版</li>
+        <li><span class="tag">V1.0.1</span> 页面视觉升级；支持 Enter 快速生成、重置按钮和 Toast 轻提示</li>
+        <li><span class="tag">V1.0.0</span> 基础功能：日期前缀 + 时间格式化 + 项目组合 + 复制</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast">操作完成</div>
+
+<script>
+  /* 文件夹命名助手 V2.0.2 本地版：全部使用 ES5 语法 */
+  function $(id) { return document.getElementById(id); }
+  function trimStr(value) { return String(value).replace(/^\s+|\s+$/g, ''); }
+  function padStart2(value, length) {
+    var text = '' + value;
+    while (text.length < length) { text = '0' + text; }
+    return text;
+  }
+
+  var now = new Date();
+  var sysYear = now.getFullYear();
+  var sysMonth = padStart2(now.getMonth() + 1, 2);
+  var sysDay = padStart2(now.getDate(), 2);
+  var systemDate = sysYear + '-' + sysMonth + '-' + sysDay;
+  var lastCreatedPath = '';
+  var favorites = [];
+  var toastTimer = null;
+
+  function normalizeDateInput(input) {
+    var clean = trimStr(input).replace(/\D/g, '');
+    if (!clean) { return null; }
+    if (clean.length === 4) {
+      return { y: '' + sysYear, m: clean.substring(0, 2), d: clean.substring(2, 4) };
+    }
+    if (clean.length === 8) {
+      return { y: clean.substring(0, 4), m: clean.substring(4, 6), d: clean.substring(6, 8) };
+    }
+    return null;
+  }
+
+  function isValidDate(y, m, d) {
+    var year = parseInt(y, 10);
+    var month = parseInt(m, 10);
+    var day = parseInt(d, 10);
+    if (isNaN(year) || isNaN(month) || isNaN(day)) { return false; }
+    if (month < 1 || month > 12) { return false; }
+    return day >= 1 && day <= new Date(year, month, 0).getDate();
+  }
+
+  function normalizeTimeInput(input) {
+    var raw = trimStr(input);
+    var clean;
+    var parts;
+    if (raw.indexOf('_') !== -1) {
+      parts = raw.split('_');
+      if (parts.length !== 2) { return null; }
+      return { h: padStart2(parts[0], 2), m: padStart2(parts[1], 2) };
+    }
+    clean = raw.replace(/\D/g, '');
+    if (clean.length === 3) {
+      return { h: padStart2(clean.charAt(0), 2), m: padStart2(clean.substring(1), 2) };
+    }
+    if (clean.length === 4) {
+      return { h: clean.substring(0, 2), m: clean.substring(2) };
+    }
+    return null;
+  }
+
+  function isValidTime(h, m) {
+    var hour = parseInt(h, 10);
+    var minute = parseInt(m, 10);
+    return h.length === 2 && m.length === 2 &&
+      !isNaN(hour) && !isNaN(minute) &&
+      hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+  }
+
+  function hasInvalidFolderChars(name) {
+    return /[<>:"\/\\|?*\x00-\x1F]/.test(name) || /[. ]$/.test(name);
+  }
+
+  function buildFolderName() {
+    var rawDate = $('dateInput').value;
+    var rawTime = $('timeInput').value;
+    var project = trimStr($('projectInput').value);
+    var dateStr = systemDate;
+    var dateObj;
+    var timeObj;
+
+    if (!project) {
+      showToast('请填写项目名称', 'warning');
+      $('projectInput').focus();
+      return null;
+    }
+    if (hasInvalidFolderChars(project)) {
+      showToast('项目名称含文件夹禁用字符，或以点/空格结尾', 'warning');
+      $('projectInput').focus();
+      return null;
+    }
+
+    if (trimStr(rawDate)) {
+      dateObj = normalizeDateInput(rawDate);
+      if (!dateObj) {
+        showToast('日期格式无效，请试试 0811 或 20260811', 'warning');
+        $('dateInput').focus();
+        return null;
+      }
+      if (!isValidDate(dateObj.y, dateObj.m, dateObj.d)) {
+        showToast('日期无效，请检查月份和日期', 'warning');
+        $('dateInput').focus();
+        return null;
+      }
+      dateStr = dateObj.y + '-' + dateObj.m + '-' + dateObj.d;
+    }
+
+    timeObj = normalizeTimeInput(rawTime);
+    if (!timeObj) {
+      showToast('时间格式无效，请试试 1416 / 905 / 14_16', 'warning');
+      $('timeInput').focus();
+      return null;
+    }
+    if (!isValidTime(timeObj.h, timeObj.m)) {
+      showToast('时间无效：小时 00-23，分钟 00-59', 'warning');
+      $('timeInput').focus();
+      return null;
+    }
+
+    return dateStr + '_' + timeObj.h + '_' + timeObj.m + '-' + project;
+  }
+
+  function generateFolderName() {
+    var folderName = buildFolderName();
+    if (!folderName) { return null; }
+    $('result').textContent = folderName;
+    $('result').style.display = 'block';
+    $('copyBtn').style.display = 'inline-block';
+    return folderName;
+  }
+
+  function normalizeTargetPath(path) {
+    var normalized = trimStr(path).replace(/^"|"$/g, '').replace(/\//g, '\\');
+    while (normalized.length > 3 && /\\$/.test(normalized)) {
+      normalized = normalized.substring(0, normalized.length - 1);
+    }
+    return normalized;
+  }
+
+  function saveTargetPath(path) {
+    try { window.localStorage.setItem('folderNameHelper.targetPath', path); } catch (error) { }
+  }
+
+  function loadTargetPath() {
+    try { return window.localStorage.getItem('folderNameHelper.targetPath') || ''; } catch (error) { return ''; }
+  }
+
+  function chooseTargetPath() {
+    var shellApp;
+    var selected;
+    var current = normalizeTargetPath($('targetPathInput').value);
+    var path = '';
+    try {
+      shellApp = new ActiveXObject('Shell.Application');
+      try {
+        selected = shellApp.BrowseForFolder(0, '请选择新文件夹的保存位置', 81, current || 0);
+      } catch (initialError) {
+        selected = shellApp.BrowseForFolder(0, '请选择新文件夹的保存位置', 81, 0);
+      }
+      if (selected && selected.Self) {
+        path = selected.Self.Path;
+        $('targetPathInput').value = path;
+        saveTargetPath(path);
+        showToast('目标路径已选择', 'success');
+        return path;
+      }
+      showToast('已取消选择路径', 'warning');
+      return '';
+    } catch (error) {
+      showToast('目录选择不可用：' + (error.message || error), 'error');
+      return '';
+    }
+  }
+
+  function showCreateStatus(message, isWarning) {
+    var status = $('createStatus');
+    status.innerText = message;
+    status.className = isWarning ? 'create-status warning' : 'create-status';
+    status.style.display = 'block';
+  }
+
+  function createFolderDirectly() {
+    var folderName = generateFolderName();
+    var targetPath;
+    var fso;
+    var fullPath;
+    if (!folderName) { return; }
+
+    targetPath = normalizeTargetPath($('targetPathInput').value);
+    if (!targetPath) { targetPath = chooseTargetPath(); }
+    if (!targetPath) { return; }
+
+    try {
+      fso = new ActiveXObject('Scripting.FileSystemObject');
+      if (!fso.FolderExists(targetPath)) {
+        showCreateStatus('目标路径不存在或无法访问：' + targetPath, true);
+        showToast('目标路径不存在或无法访问', 'warning');
+        $('targetPathInput').focus();
+        return;
+      }
+
+      fullPath = fso.BuildPath(targetPath, folderName);
+      $('targetPathInput').value = targetPath;
+      saveTargetPath(targetPath);
+
+      if (fso.FolderExists(fullPath)) {
+        lastCreatedPath = fullPath;
+        $('openBtn').style.display = 'inline-block';
+        showCreateStatus('同名文件夹已存在，未重复创建：' + fullPath, true);
+        showToast('同名文件夹已存在，未重复创建', 'warning');
+        return;
+      }
+
+      fso.CreateFolder(fullPath);
+      lastCreatedPath = fullPath;
+      $('openBtn').style.display = 'inline-block';
+      showCreateStatus('创建成功：' + fullPath, false);
+      showToast('文件夹创建成功', 'success');
+    } catch (error) {
+      lastCreatedPath = '';
+      $('openBtn').style.display = 'none';
+      showCreateStatus('创建失败：' + (error.message || error), true);
+      showToast('创建失败，请检查路径与写入权限', 'error');
+    }
+  }
+
+  function openCreatedFolder() {
+    var shell;
+    if (!lastCreatedPath) {
+      showToast('暂无可打开的文件夹', 'warning');
+      return;
+    }
+    try {
+      shell = new ActiveXObject('WScript.Shell');
+      shell.Run('explorer.exe "' + lastCreatedPath + '"', 1, false);
+    } catch (error) {
+      showToast('打开失败：' + (error.message || error), 'error');
+    }
+  }
+
+  function resetForm() {
+    $('dateInput').value = '';
+    $('timeInput').value = '';
+    $('projectInput').value = '';
+    $('result').style.display = 'none';
+    $('copyBtn').style.display = 'none';
+    $('openBtn').style.display = 'none';
+    $('createStatus').style.display = 'none';
+    lastCreatedPath = '';
+    $('dateInput').focus();
+    showToast('已重置命名内容，目标路径与收藏保持不变', 'success');
+  }
+
+  /* ===== 常用位置收藏（本机 localStorage 持久化） ===== */
+  function getFsoSafe() {
+    try { return new ActiveXObject('Scripting.FileSystemObject'); } catch (error) { return null; }
+  }
+
+  function shortenFavName(name) {
+    if (name.length <= 14) { return name; }
+    return name.substring(0, 13) + '…';
+  }
+
+  function favNameFromPath(path) {
+    var parts;
+    var name;
+    if (/^[A-Za-z]:$/.test(path)) {
+      name = path;
+    } else {
+      parts = path.split('\\');
+      name = parts[parts.length - 1] || path;
+    }
+    return shortenFavName(name);
+  }
+
+  function loadFavorites() {
+    var raw = '';
+    var fso;
+    var shell;
+    var defaults = [];
+    var desktop = '';
+    var documents = '';
+    try { raw = window.localStorage.getItem('folderNameHelper.favorites') || ''; } catch (error) { raw = ''; }
+
+    if (raw) {
+      try {
+        favorites = JSON.parse(raw) || [];
+        if (favorites.length) { return; }
+      } catch (parseError) {
+        favorites = [];
+      }
+    }
+
+    // 首次使用：预置桌面、我的文档（以及存在的 D 盘根目录）
+    fso = getFsoSafe();
+    try {
+      shell = new ActiveXObject('WScript.Shell');
+      desktop = shell.SpecialFolders('Desktop') || '';
+      documents = shell.SpecialFolders('MyDocuments') || '';
+    } catch (shellError) {
+      desktop = '';
+      documents = '';
+    }
+    if (desktop) { defaults.push({ name: '桌面', path: desktop }); }
+    if (documents) { defaults.push({ name: '我的文档', path: documents }); }
+    if (fso && fso.FolderExists('D:\\')) { defaults.push({ name: 'D 盘', path: 'D:\\' }); }
+    favorites = defaults;
+    saveFavorites();
+  }
+
+  function saveFavorites() {
+    try { window.localStorage.setItem('folderNameHelper.favorites', JSON.stringify(favorites)); } catch (error) { }
+  }
+
+  function renderFavorites() {
+    var list = $('favList');
+    var row = $('favRow');
+    var index;
+    var item;
+    var pickBtn;
+    var delBtn;
+    var addBtn;
+
+    while (list.firstChild) { list.removeChild(list.firstChild); }
+
+    for (index = 0; index < favorites.length; index++) {
+      item = document.createElement('span');
+      item.className = 'fav-item-wrap';
+
+      pickBtn = document.createElement('button');
+      pickBtn.type = 'button';
+      pickBtn.className = 'fav-btn';
+      pickBtn.title = favorites[index].path;
+      pickBtn.innerText = '📁 ' + favorites[index].name;
+      pickBtn.onclick = function (i) {
+        return function () { pickFavorite(i); };
+      }(index);
+
+      delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'fav-del';
+      delBtn.title = '删除收藏：' + favorites[index].path;
+      delBtn.innerText = '×';
+      delBtn.onclick = function (i) {
+        return function () { removeFavorite(i); };
+      }(index);
+
+      item.appendChild(pickBtn);
+      item.appendChild(delBtn);
+      list.appendChild(item);
+    }
+
+    addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'fav-add';
+    addBtn.title = '把当前“目标路径”加入常用位置';
+    addBtn.innerText = '★ 添加当前路径';
+    addBtn.onclick = function () { addFavoriteFromInput(); };
+    list.appendChild(addBtn);
+
+    row.style.display = 'block';
+  }
+
+  function pickFavorite(index) {
+    var fav = favorites[index];
+    if (!fav) { return; }
+    $('targetPathInput').value = fav.path;
+    saveTargetPath(fav.path);
+    showToast('已填入常用位置：' + fav.name, 'success');
+  }
+
+  function addFavoriteFromInput() {
+    var path = normalizeTargetPath($('targetPathInput').value);
+    var fso;
+    var index;
+    if (!path) {
+      showToast('请先在目标路径中输入或选择一个目录', 'warning');
+      $('targetPathInput').focus();
+      return;
+    }
+    fso = getFsoSafe();
+    if (fso && !fso.FolderExists(path)) {
+      showToast('该路径不存在或无法访问：' + path, 'warning');
+      return;
+    }
+    for (index = 0; index < favorites.length; index++) {
+      if (favorites[index].path.toLowerCase() === path.toLowerCase()) {
+        showToast('该位置已在收藏中', 'warning');
+        return;
+      }
+    }
+    favorites.push({ name: favNameFromPath(path), path: path });
+    saveFavorites();
+    renderFavorites();
+    showToast('已添加到常用位置', 'success');
+  }
+
+  function removeFavorite(index) {
+    var fav = favorites[index];
+    if (!fav) { return; }
+    if (!window.confirm('确定删除收藏“' + fav.name + '”（' + fav.path + '）？')) { return; }
+    favorites.splice(index, 1);
+    saveFavorites();
+    renderFavorites();
+    showToast('已删除该收藏', 'success');
+  }
+
+  /* ---------- 复制 ---------- */
+  function fallbackCopy(text) {
+    var textarea = document.createElement('textarea');
+    var ok = false;
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try { ok = document.execCommand('copy'); } catch (error) { ok = false; }
+    document.body.removeChild(textarea);
+    return ok;
+  }
+
+  function copyToClipboard() {
+    var text = $('result').textContent;
+    var ok = false;
+    if (!text) { return; }
+    try {
+      if (window.clipboardData && window.clipboardData.setData) {
+        ok = window.clipboardData.setData('Text', text);
+      }
+    } catch (error) { ok = false; }
+    if (!ok) { ok = fallbackCopy(text); }
+    showToast(ok ? '已复制' : '复制失败，请手动复制', ok ? 'success' : 'warning');
+  }
+
+  /* ---------- Toast ---------- */
+  function showToast(message, type) {
+    var toast = $('toast');
+    type = type || 'success';
+    toast.innerText = message;
+    toast.className = 'toast show ' + type;
+    if (toastTimer) { clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function () {
+      toast.className = 'toast ' + type;
+    }, 2400);
+  }
+
+  function toggleChangelog() {
+    var body = $('clBody');
+    var arrow = $('clArrow');
+    if (body.style.display === 'block') {
+      body.style.display = 'none';
+      arrow.innerHTML = '▼';
+    } else {
+      body.style.display = 'block';
+      arrow.innerHTML = '▲';
+    }
+  }
+
+  /* ---------- 初始化 ---------- */
+  window.onload = function () {
+    try {
+      var width = Math.min(760, screen.availWidth - 60);
+      var height = Math.min(960, screen.availHeight - 60);
+      window.resizeTo(width, height);
+      window.moveTo(Math.round((screen.availWidth - width) / 2), Math.round((screen.availHeight - height) / 2));
+    } catch (error) { }
+
+    $('projectInput').onkeypress = function (event) {
+      event = event || window.event;
+      var code = event.keyCode || event.which;
+      if (code === 13) {
+        if (event.preventDefault) { event.preventDefault(); } else { event.returnValue = false; }
+        generateFolderName();
+        return false;
+      }
+      return true;
+    };
+
+    loadFavorites();
+    $('targetPathInput').value = loadTargetPath();
+    renderFavorites();
+    $('dateInput').focus();
+  };
+</script>
+</body>
+</html>
