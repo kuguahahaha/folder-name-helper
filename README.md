@@ -61,3 +61,26 @@ V1.0.0
 • 纯前端 HTML+CSS+JS，无依赖
 • 响应式布局，最大宽度 650px 居中
 • 使用 Microsoft YaHei 字体，适配中文环境
+
+
+## 🔗 在线使用
+
+| 入口 | 链接 |
+|---|---|
+| 最新版（v2.0.2） | https://kuguahahaha.github.io/folder-name-helper/ |
+| 版本列表（全部历史版本） | https://kuguahahaha.github.io/folder-name-helper/versions/ |
+| v2.0.2 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.2.html |
+| v2.0.1 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.1.html |
+| v2.0.0 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.0.html |
+| v1.0.1 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v1.0.1.html |
+| v1.0.0 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v1.0.0.html |
+
+<!-- RELEASE-NOTE-v2.0.2 -->
+
+## 🚀 V2.0.2（2026-11-04）
+• 重置按钮下方新增「常用位置」收藏栏：点击快速切换目标目录，数量不限
+• 收藏跨会话保存（IndexedDB）；重复添加自动去重
+
+## 🚀 V2.0.1（2026-10-30）
+• 新增「新建文件夹」：自动校验输入、生成名称并直接在目标目录创建
+• 非法字符 / 同名目录 / 路径存在性 / 写入权限提示
