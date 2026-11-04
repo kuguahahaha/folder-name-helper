@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>文件夹命名助手 V2.0.2</title>
+  <title>文件夹命名助手 V2.0.3</title>
   <style>
     :root {
       --primary: #4361ee;
@@ -196,7 +196,9 @@
     }
 
     #copyBtn {
-      padding: 9px 14px;
+      flex: 1 1 auto;
+      min-width: 110px;
+      padding: 11px 10px;
       background: #eafaf5;
       color: #087a5e;
       border: 1px solid #9de0cd;
@@ -401,7 +403,7 @@
 <body>
   <div class="header">
     <h2>📁 文件夹命名助手</h2>
-    <span class="version">V2.0.2 · 浏览器版</span>
+    <span class="version">V2.0.3 · 浏览器版</span>
   </div>
 
   <div class="card">
@@ -432,6 +434,7 @@
 
     <div class="btn-group">
       <button id="generateBtn" type="button" onclick="generateFolderName()">✨ 生成名称</button>
+      <button id="copyBtn" type="button" onclick="copyToClipboard()" style="display: none;">📋 复制结果</button>
       <button id="createBtn" type="button" onclick="createFolderDirectly()">➕ 新建文件夹</button>
       <button id="resetBtn" type="button" onclick="resetForm()">🔄 重置</button>
     </div>
@@ -445,15 +448,13 @@
     </div>
 
     <div id="result"></div>
-    <div id="resultActions" class="result-actions">
-      <button id="copyBtn" type="button" onclick="copyToClipboard()">📋 复制结果</button>
-    </div>
     <div id="createStatus" class="create-status"></div>
   </div>
 
   <details class="changelog">
     <summary>📦 更新日志 <span style="font-weight:normal;font-size:0.85rem;color:#6c757d;margin-left:6px">▼</span></summary>
     <ul>
+      <li><span class="tag">V2.0.3</span> <strong>“复制结果”按钮上移</strong>：与“生成名称”同排放置，生成后即可一键复制，布局更紧凑</li>
       <li><span class="tag">V2.0.2</span> 重置按钮下方新增<strong>“常用位置”收藏栏</strong>：选择过的目录可收藏，点击快速恢复使用，支持删除；收藏跨会话保存</li>
       <li><span class="tag">V2.0.1</span> 新增<strong>“新建文件夹”</strong>：自动生成名称并在所选目录中直接创建；当前会话复用目标位置，并加入非法字符、重复目录和权限提示</li>
       <li><span class="tag">V2.0.0</span> 新增<strong>日期输入框</strong>（非必填），兼容 0811 / 20260811 / 08_11 / 2026-08-11 等写法；留空取系统当天，并加入日期合法性校验</li>
@@ -582,7 +583,7 @@
       const result = document.getElementById('result');
       result.textContent = folderName;
       result.style.display = 'block';
-      document.getElementById('resultActions').style.display = 'flex';
+      document.getElementById('copyBtn').style.display = 'inline-flex';
     }
 
     function generateFolderName() {
@@ -827,7 +828,7 @@
       document.getElementById('timeInput').value = '';
       document.getElementById('projectInput').value = '';
       document.getElementById('result').style.display = 'none';
-      document.getElementById('resultActions').style.display = 'none';
+      document.getElementById('copyBtn').style.display = 'none';
       document.getElementById('createStatus').style.display = 'none';
       document.getElementById('dateInput').focus();
       showToast('已重置命名内容，目标位置与收藏保持不变', 'success');
