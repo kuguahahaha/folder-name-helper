@@ -67,8 +67,10 @@ V1.0.0
 
 | 入口 | 链接 |
 |---|---|
-| 最新版（v2.0.2） | https://kuguahahaha.github.io/folder-name-helper/ |
+| 最新版（v2.0.5） | https://kuguahahaha.github.io/folder-name-helper/ |
 | 版本列表（全部历史版本） | https://kuguahahaha.github.io/folder-name-helper/versions/ |
+| v2.0.5 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.5.html |
+| v2.0.5 Windows 版下载 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.5.hta |
 | v2.0.4 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.4.html |
 | v2.0.4 Windows 版下载 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.4.hta |
 | v2.0.3 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.3.html |
@@ -96,3 +98,10 @@ V1.0.0
 ## 🕐 V2.0.4（2026-11-05）
 • 时间留空自动取当前时间：日期、时间都不填时，只填项目名称即可生成「今天 + 当前时间」的文件夹名
 • 单独指定日期、时间留空时，取指定日期加当前时间
+
+## 🧰 V2.0.5（2026-11-07）
+• 修复时间固定：留空的日期/时间在点击生成那一刻实时读取，页面挂机不跨天固定
+• 新增「关闭重复」（HTA）：双通道枚举资源管理器窗口，同路径保留最早一个，先列出清单再确认关闭；此电脑/桌面等虚拟目录同样参与查重
+• 新增「检查更新 / 切换版本」（HTA）：读取同目录或线上 version.json，新版另存新文件并可立即启动；可列出并启动本地全部 HTA 版本
+• 常用位置收藏改为同目录 favorites.json 文件持久化，换版本/重启/摆渡都保留，首次运行自动生成
+• 新增根 version.json 版本清单（latest / downloadUrl / notes）
