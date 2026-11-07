@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>文件夹命名助手 V2.0.4</title>
+  <title>文件夹命名助手 V2.0.5</title>
   <style>
     :root {
       --primary: #4361ee;
@@ -195,6 +195,15 @@
       white-space: nowrap;
     }
 
+    #closeDupBtn {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      background: #ffffff;
+      color: #b25e00;
+      border: 1px solid #ffd591;
+      white-space: nowrap;
+    }
+
     #copyBtn {
       flex: 1 1 auto;
       min-width: 110px;
@@ -208,6 +217,7 @@
     #generateBtn:hover { box-shadow: 0 4px 15px rgba(67, 97, 238, 0.35); }
     #createBtn:hover { box-shadow: 0 4px 15px rgba(6, 185, 139, 0.35); }
     #choosePathBtn:hover { background: #eef3ff; }
+    #closeDupBtn:hover { background: #fff4e5; }
 
     #result {
       margin-top: 20px;
@@ -403,7 +413,7 @@
 <body>
   <div class="header">
     <h2>📁 文件夹命名助手</h2>
-    <span class="version">V2.0.4 · 浏览器版</span>
+    <span class="version">V2.0.5 · 浏览器版</span>
   </div>
 
   <div class="card">
@@ -429,6 +439,7 @@
     <div class="target-panel">
       <div id="targetPathLabel" class="target-value empty">尚未选择；点击“选择位置”或“新建文件夹”</div>
       <button id="choosePathBtn" type="button" onclick="chooseTargetDirectory()">📂 选择位置</button>
+      <button id="closeDupBtn" type="button" onclick="openDuplicateCleaner()">🧹 关闭重复</button>
     </div>
     <span class="helper-text">浏览器安全机制不允许输入本机完整路径；需要手输/粘贴路径、自动记忆和创建后打开时，请使用 HTA 本地版。</span>
 
@@ -454,6 +465,9 @@
   <details class="changelog">
     <summary>📦 更新日志 <span style="font-weight:normal;font-size:0.85rem;color:#6c757d;margin-left:6px">▼</span></summary>
     <ul>
+      <li><span class="tag">V2.0.5</span> <strong>修复时间固定问题</strong>：页面长时间挂机后，留空的日期/时间改为在点击「生成名称 / 新建文件夹」那一刻实时读取系统时间，不再固定为打开页面时的值</li>
+      <li><span class="tag">V2.0.5</span> <strong>关闭重复文件夹</strong>：目标位置右侧新增「🧹 关闭重复」按钮（仅 HTA 本地版支持，浏览器版点击会提示）</li>
+      <li><span class="tag">V2.0.5</span> <strong>检查更新与切换版本</strong>：HTA 版更新日志区新增「检查更新 / 切换版本」按钮（本地版本管理与在线更新，浏览器版不适用）</li>
       <li><span class="tag">V2.0.4</span> <strong>时间留空自动取当前时间</strong>：日期、时间都不填时，只填项目名称即可生成“今天 + 当前时间”的文件夹名</li>
       <li><span class="tag">V2.0.3</span> <strong>“复制结果”按钮上移</strong>：与“生成名称”同排放置，生成后即可一键复制，布局更紧凑</li>
       <li><span class="tag">V2.0.2</span> 重置按钮下方新增<strong>“常用位置”收藏栏</strong>：选择过的目录可收藏，点击快速恢复使用，支持删除；收藏跨会话保存</li>
@@ -467,13 +481,19 @@
   <div id="toast" class="toast">操作完成</div>
 
   <script>
-    const now = new Date();
-    const sysYear = now.getFullYear();
-    const sysMonth = String(now.getMonth() + 1).padStart(2, '0');
-    const sysDay = String(now.getDate()).padStart(2, '0');
-    const sysHour = String(now.getHours()).padStart(2, '0');
-    const sysMinute = String(now.getMinutes()).padStart(2, '0');
-    const systemDate = `${sysYear}-${sysMonth}-${sysDay}`;
+    function pad2(value) {
+      return String(value).padStart(2, '0');
+    }
+    /* 每次调用都实时读取系统时间，避免页面挂机后日期时间固定 */
+    function getNowParts() {
+      const n = new Date();
+      return {
+        year: n.getFullYear(),
+        date: `${n.getFullYear()}-${pad2(n.getMonth() + 1)}-${pad2(n.getDate())}`,
+        h: pad2(n.getHours()),
+        m: pad2(n.getMinutes())
+      };
+    }
     let selectedDirectoryHandle = null;
     let favorites = [];
     let toastTimer = null;
@@ -489,7 +509,7 @@
       const clean = input.trim().replace(/\D/g, '');
       if (!clean) return null;
       if (clean.length === 4) {
-        return { y: String(sysYear), m: clean.substring(0, 2), d: clean.substring(2, 4) };
+        return { y: String(new Date().getFullYear()), m: clean.substring(0, 2), d: clean.substring(2, 4) };
       }
       if (clean.length === 8) {
         return { y: clean.substring(0, 4), m: clean.substring(4, 6), d: clean.substring(6, 8) };
@@ -551,7 +571,8 @@
         return null;
       }
 
-      let dateStr = systemDate;
+      const nowParts = getNowParts();
+      let dateStr = nowParts.date;
       if (rawDate.trim()) {
         const dateObj = normalizeDateInput(rawDate);
         if (!dateObj) {
@@ -569,8 +590,8 @@
 
       let timeObj = normalizeTimeInput(rawTime);
       if (!timeObj && !rawTime.trim()) {
-        /* 时间留空：直接取当前时间 */
-        timeObj = { h: sysHour, m: sysMinute };
+        /* 时间留空：直接取当前时间（生成那一刻实时读取） */
+        timeObj = { h: nowParts.h, m: nowParts.m };
       }
       if (!timeObj) {
         showToast('时间格式无效，请试试 1416 / 905 / 14_16', 'warning');
@@ -602,6 +623,11 @@
 
     function supportsDirectoryPicker() {
       return typeof window.showDirectoryPicker === 'function';
+    }
+
+    function openDuplicateCleaner() {
+      /* 浏览器沙箱不允许网页枚举或关闭系统窗口，此功能仅 HTA 本地版可用 */
+      showToast('关闭重复文件夹仅 HTA 本地版支持：浏览器无法枚举或关闭系统窗口', 'warning');
     }
 
     async function chooseTargetDirectory() {
