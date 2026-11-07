@@ -1,0 +1,1650 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>文件夹命名助手 V2.0.5 - 本地版</title>
+<HTA:APPLICATION
+  ID="FolderNameHelper"
+  APPLICATIONNAME="文件夹命名助手 V2.0.5"
+  BORDER="thin"
+  CAPTION="yes"
+  SHOWINTASKBAR="yes"
+  SINGLEINSTANCE="yes"
+  SYSMENU="yes"
+  WINDOWSTATE="normal"
+  SCROLL="yes"
+  MAXIMIZEBUTTON="no"
+  MINIMIZEBUTTON="yes"
+  CONTEXTMENU="yes"
+/>
+<style>
+  /* 传统 CSS + ES5，兼容 mshta 的 IE11 引擎 */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #eef2f8;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+    color: #2b2d42;
+    line-height: 1.6;
+    font-size: 14px;
+    padding: 20px 14px;
+  }
+
+  .wrap { max-width: 680px; margin: 0 auto; }
+
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 14px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  .header h2 { color: #4361ee; font-size: 20px; margin-bottom: 5px; }
+  .header .version {
+    font-size: 12px;
+    color: #6c757d;
+    background: #eef2ff;
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+
+  .card {
+    background: #ffffff;
+    padding: 22px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  label {
+    display: block;
+    margin: 16px 0 7px 0;
+    font-weight: bold;
+    color: #2b2d42;
+    font-size: 14px;
+  }
+
+  label.first { margin-top: 0; }
+  label small, .helper-text { font-weight: normal; color: #6c757d; font-size: 12px; }
+  .input-group { position: relative; }
+
+  .input-prefix {
+    position: absolute;
+    left: 11px;
+    top: 9px;
+    font-size: 15px;
+    color: #4361ee;
+    line-height: 22px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    border: 2px solid #e0e6ef;
+    border-radius: 8px;
+    font-size: 15px;
+    background: #fafbfc;
+    color: #2b2d42;
+    font-family: "Microsoft YaHei", sans-serif;
+  }
+
+  input[type="text"]:focus { outline: none; border-color: #4361ee; background: #ffffff; }
+  input[type="text"]:-ms-input-placeholder { color: #adb5bd; }
+
+  .target-row { white-space: nowrap; }
+  .target-input-wrap { position: relative; display: inline-block; width: 56%; vertical-align: top; }
+  #browseBtn {
+    width: 20%;
+    margin-left: 2%;
+    padding: 10px 6px;
+    background: #eef3ff;
+    color: #3654c7;
+    border: 1px solid #b8c8ff;
+  }
+  #closeDupBtn {
+    width: 20%;
+    margin-left: 2%;
+    padding: 10px 6px;
+    background: #fff4e5;
+    color: #b25e00;
+    border: 1px solid #ffd591;
+  }
+  .helper-text { display: block; margin-top: 6px; }
+
+  .btn-group { margin-top: 20px; white-space: nowrap; }
+  button {
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: "Microsoft YaHei", sans-serif;
+    padding: 10px 10px;
+    cursor: pointer;
+    color: #ffffff;
+  }
+
+  #generateBtn {
+    width: 24%;
+    background: #4361ee;
+    background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+  }
+  #copyBtn {
+    display: none;
+    width: 24%;
+    margin-left: 2%;
+    background: #eafaf5;
+    color: #087a5e;
+    border: 1px solid #9de0cd;
+  }
+  #createBtn {
+    width: 24%;
+    margin-left: 2%;
+    background: #06b98b;
+    background: linear-gradient(135deg, #06b98b 0%, #059c76 100%);
+  }
+  #resetBtn {
+    width: 22%;
+    margin-left: 2%;
+    background: #6c757d;
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+  }
+  #generateBtn:hover { background: #3a56d4; }
+  #createBtn:hover { background: #059c76; }
+  #resetBtn:hover { background: #5a6268; }
+  #browseBtn:hover { background: #dfe8ff; }
+  #closeDupBtn:hover { background: #ffe8c7; }
+
+  .dup-mask {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #141828;
+    filter: alpha(opacity=45);
+    opacity: 0.45;
+    z-index: 900;
+  }
+  .dup-box {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 88%;
+    max-height: 70%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    z-index: 950;
+    overflow-y: auto;
+  }
+  .dup-box h3 { margin: 0 0 10px; font-size: 15px; color: #2b2d42; }
+  .dup-group {
+    border: 1px solid #ffd591;
+    background: #fffaf2;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    line-height: 1.7;
+    word-break: break-all;
+  }
+  .dup-group .dup-path { color: #2b2d42; font-weight: bold; }
+  .dup-group .dup-info { color: #b25e00; }
+  .dup-actions { text-align: right; margin-top: 12px; white-space: nowrap; }
+  .dup-actions button { padding: 8px 18px; font-size: 14px; }
+  #dupConfirmBtn { background: #c0392b; color: #ffffff; }
+  #dupCancelBtn { background: #6c757d; color: #ffffff; margin-left: 10px; }
+  #dupScanBtn { background: #4361ee; color: #ffffff; float: left; margin-left: 0 !important; }
+  .dup-scan-list { display: none; margin-top: 12px; clear: both; }
+  .dup-scan-list .dup-group { border-color: #dbe3ff; background: #f7f9ff; }
+  .dup-scan-list .dup-path { color: #3654c7; font-weight: normal; }
+  .dup-scan-list .dup-info { color: #5f6b8a; }
+
+  .ver-bar { margin-top: 10px; }
+  .ver-bar button {
+    padding: 6px 12px;
+    font-size: 12px;
+    background: #eef2ff;
+    color: #4361ee;
+    border: 1px solid #c7d2fe;
+    border-radius: 6px;
+    margin-right: 8px;
+  }
+  .ver-bar button:hover { background: #e0e7ff; }
+  .ver-item {
+    border: 1px solid #dbe3ff;
+    background: #f7f9ff;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .ver-item.current { border-color: #9de0cd; background: #eafaf5; }
+  .ver-item .ver-name { font-weight: bold; color: #2b2d42; word-break: break-all; padding-right: 70px; }
+  .ver-item button {
+    float: right;
+    padding: 4px 12px;
+    font-size: 12px;
+    background: #4361ee;
+    color: #ffffff;
+  }
+  .ver-item button[disabled] { background: #9de0cd; color: #085041; cursor: default; }
+  #verActions button { padding: 8px 18px; font-size: 14px; }
+  #verActions button.ver-primary { background: #4361ee; color: #ffffff; }
+  #verActions button.ver-plain { background: #6c757d; color: #ffffff; margin-left: 10px; }
+
+  #openBtn {
+    display: none;
+    width: auto;
+    margin-top: 10px;
+  }
+  #openBtn { margin-left: 8px; background: #06a37a; }
+
+  #result {
+    margin-top: 18px;
+    padding: 14px;
+    background: #eef2ff;
+    background: linear-gradient(135deg, #f8f9ff 0%, #eef2ff 100%);
+    border: 2px solid #d6e0ff;
+    border-radius: 8px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 15px;
+    color: #3a56d4;
+    word-wrap: break-word;
+    word-break: break-all;
+    display: none;
+    position: relative;
+  }
+
+  #result:before {
+    content: "📁";
+    position: absolute;
+    left: -8px;
+    top: -8px;
+    background: #4361ee;
+    color: #ffffff;
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    font-size: 12px;
+    line-height: 24px;
+    text-align: center;
+  }
+
+  .create-status {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid #9de0cd;
+    border-radius: 8px;
+    background: #edfbf7;
+    color: #087a5e;
+    font-size: 12px;
+    word-wrap: break-word;
+    word-break: break-all;
+  }
+  .create-status.warning { border-color: #f0cd88; background: #fff8e8; color: #916000; }
+
+  /* ===== 常用位置收藏栏（重置按钮下方） ===== */
+  .fav-row {
+    display: none;
+    margin-top: 14px;
+    padding: 10px 12px;
+    border: 1px dashed #b8c8ff;
+    border-radius: 8px;
+    background: #fbfcff;
+  }
+
+  .fav-title { font-size: 12px; color: #6c757d; margin-bottom: 8px; }
+  .fav-hint { font-size: 11px; color: #8a93a6; margin-top: 8px; word-break: break-all; line-height: 1.6; }
+  .fav-hint.ok { color: #087a5e; }
+  .fav-hint.warn { color: #b25e00; }
+  .fav-list { line-height: 2; }
+
+  .fav-btn {
+    display: inline-block;
+    border: 1px solid #b8c8ff;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #3654c7;
+    font-size: 12px;
+    padding: 4px 8px;
+    margin: 0 4px 4px 0;
+  }
+  .fav-btn:hover { background: #eef3ff; }
+
+  .fav-del {
+    display: inline-block;
+    border: 1px solid #d6e0ff;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #6c757d;
+    font-size: 12px;
+    padding: 4px 7px;
+    margin: 0 8px 4px 0;
+  }
+  .fav-del:hover { background: #fdeeee; color: #c0392b; }
+
+  .fav-add {
+    display: inline-block;
+    border: 1px dashed #e0c27a;
+    border-radius: 6px;
+    background: #fff8e8;
+    color: #916000;
+    font-size: 12px;
+    padding: 4px 10px;
+    margin: 0 4px 4px 0;
+  }
+  .fav-add:hover { background: #fdf0d2; }
+
+  .changelog {
+    margin-top: 20px;
+    padding: 14px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    font-size: 12px;
+    color: #6c757d;
+  }
+  .changelog-title { cursor: pointer; font-weight: bold; color: #4361ee; font-size: 13px; }
+  .changelog-body { display: none; margin-top: 8px; }
+  .changelog-body ul { padding-left: 18px; line-height: 1.9; }
+  .changelog-body li { margin-bottom: 4px; }
+  .tag {
+    display: inline-block;
+    padding: 2px 7px;
+    background: #eef2ff;
+    color: #4361ee;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-right: 5px;
+  }
+
+  .toast {
+    position: fixed;
+    top: -90px;
+    left: 50%;
+    -ms-transform: translateX(-50%);
+    transform: translateX(-50%);
+    background: #333333;
+    color: #ffffff;
+    padding: 9px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    white-space: nowrap;
+    z-index: 1000;
+    transition: top 0.3s ease;
+  }
+  .toast.show { top: 18px; }
+  .toast.success { background: #06a37a; }
+  .toast.warning { background: #b7791f; }
+  .toast.error { background: #c0392b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h2>📁 文件夹命名助手</h2>
+    <span class="version">V2.0.5 本地版</span>
+  </div>
+
+  <div class="card">
+    <label class="first" for="dateInput">📅 输入日期 <small>（留空=今天，0811 或 20260811）</small></label>
+    <div class="input-group">
+      <span class="input-prefix">📅</span>
+      <input type="text" id="dateInput" placeholder="例如：0811 或 20260811 或 08-11" maxlength="10" />
+    </div>
+
+    <label for="timeInput">⏰ 输入时间 <small>（留空=当前时间，1416→14_16，905→09_05）</small></label>
+    <div class="input-group">
+      <span class="input-prefix">🕐</span>
+      <input type="text" id="timeInput" placeholder="例如：1416 或 905 或 14_16" maxlength="5" />
+    </div>
+
+    <label for="projectInput">📝 项目名称 <small>（按 Enter 可快速生成）</small></label>
+    <div class="input-group">
+      <span class="input-prefix">🏷️</span>
+      <input type="text" id="projectInput" placeholder="请输入项目名称" />
+    </div>
+
+    <label for="targetPathInput">📂 目标路径 <small>（可手输/粘贴，或点浏览选择）</small></label>
+    <div class="target-row">
+      <div class="target-input-wrap">
+        <span class="input-prefix">📍</span>
+        <input type="text" id="targetPathInput" placeholder="例如：D:\\项目资料（留空时新建会自动弹出选择框）" />
+      </div><button id="browseBtn" type="button" onclick="chooseTargetPath()">📂 浏览</button><button id="closeDupBtn" type="button" onclick="openDuplicateCleaner()">🧹 关闭重复</button>
+    </div>
+    <span class="helper-text">目标路径会在本机记住；“重置”只清空命名内容，不清空目标路径和收藏。</span>
+
+    <div class="btn-group">
+      <button id="generateBtn" type="button" onclick="generateFolderName()">✨ 生成名称</button><button id="copyBtn" type="button" onclick="copyToClipboard()">📋 复制结果</button><button id="createBtn" type="button" onclick="createFolderDirectly()">➕ 新建文件夹</button><button id="resetBtn" type="button" onclick="resetForm()">🔄 重置</button>
+    </div>
+
+    <div id="favRow" class="fav-row">
+      <div class="fav-title">★ 常用位置（点击填入目标路径，收藏自动保存在同目录 favorites.json）</div>
+      <div id="favList" class="fav-list"></div>
+      <div id="favStorageHint" class="fav-hint"></div>
+    </div>
+
+    <div id="result"></div>
+    <button id="openBtn" type="button" onclick="openCreatedFolder()">📂 打开文件夹</button>
+    <div id="createStatus" class="create-status"></div>
+  </div>
+
+  <div class="changelog">
+    <div class="changelog-title" onclick="toggleChangelog()">📦 更新日志 <span id="clArrow">▼</span></div>
+    <div class="ver-bar">
+      <button id="checkUpdateBtn" type="button" onclick="checkUpdate()">⬇ 检查更新</button><button id="switchVerBtn" type="button" onclick="openVersionSwitch()">⇄ 切换版本</button>
+    </div>
+    <div class="changelog-body" id="clBody">
+      <ul>
+        <li><span class="tag">V2.0.5</span> <strong>修复时间固定问题</strong>：页面长时间挂机后，留空的日期/时间改为在点击「生成名称 / 新建文件夹」那一刻实时读取系统时间，不再固定为打开页面时的值</li>
+        <li><span class="tag">V2.0.5</span> <strong>关闭重复文件夹</strong>：目标路径右侧新增「🧹 关闭重复」按钮；Shell + UIAutomation 双通道枚举资源管理器窗口（补上 Shell 漏登记的同名重复窗口），同一路径/窗口名称只保留最早打开的一个；此电脑/桌面等虚拟目录同样参与查重；先列出清单、确认后才关闭，不碰非重复窗口</li>
+        <li><span class="tag">V2.0.5</span> <strong>检查更新与切换版本</strong>：更新日志区新增两个按钮；「检查更新」读取同目录或线上的 version.json，有新版本时另存为新文件并可立即启动；「切换版本」列出本目录全部 HTA 版本，点选即启动并关闭当前窗口</li>
+        <li><span class="tag">V2.0.5</span> <strong>收藏改为文件持久化</strong>：首次使用自动在 HTA 同目录生成 favorites.json，收藏栏底部显示文件完整路径；换版本/重启/摆渡都保留，老缓存自动迁移；删光收藏后不再重新预置默认项</li>
+        <li><span class="tag">V2.0.4</span> <strong>时间留空自动取当前时间</strong>：日期、时间都不填时，只填项目名称即可生成“今天 + 当前时间”的文件夹名</li>
+        <li><span class="tag">V2.0.3</span> <strong>“复制结果”按钮上移</strong>：与“生成名称”同排放置，生成后即可一键复制，布局更紧凑</li>
+        <li><span class="tag">V2.0.2</span> 重置按钮下方新增<strong>“常用位置”收藏栏</strong>：可添加多个常用目录，点击快速填入目标路径，支持删除并跨会话保存；首次使用自动预置桌面、我的文档等</li>
+        <li><span class="tag">V2.0.1</span> 新增<strong>“新建文件夹”</strong>：支持手输/粘贴目标路径或浏览选择，自动生成名称并直接创建；记忆上次路径、创建后可直接打开，并加入非法字符、重复目录和权限提示</li>
+        <li><span class="tag">V2.0.0</span> 新增<strong>日期输入框</strong>与日期合法性校验；同步推出 HTA 本地版</li>
+        <li><span class="tag">V1.0.1</span> 页面视觉升级；支持 Enter 快速生成、重置按钮和 Toast 轻提示</li>
+        <li><span class="tag">V1.0.0</span> 基础功能：日期前缀 + 时间格式化 + 项目组合 + 复制</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div id="dupMask" class="dup-mask"></div>
+<div id="dupBox" class="dup-box">
+  <h3>🧹 发现重复打开的文件夹窗口</h3>
+  <div id="dupList"></div>
+  <div id="dupScanList" class="dup-scan-list"></div>
+  <div class="dup-actions">
+    <button id="dupScanBtn" type="button" onclick="toggleDupScanList()">🔍 窗口清单</button><button id="dupConfirmBtn" type="button" onclick="confirmCloseDuplicates()">确认关闭</button><button id="dupCancelBtn" type="button" onclick="cancelCloseDuplicates()">取消</button>
+  </div>
+</div>
+
+<div id="verMask" class="dup-mask"></div>
+<div id="verBox" class="dup-box">
+  <h3 id="verTitle">版本</h3>
+  <div id="verBody"></div>
+  <div class="dup-actions" id="verActions"></div>
+</div>
+
+<div id="toast" class="toast">操作完成</div>
+
+<script>
+  /* 文件夹命名助手 V2.0.5 本地版：全部使用 ES5 语法 */
+  function $(id) { return document.getElementById(id); }
+  function trimStr(value) { return String(value).replace(/^\s+|\s+$/g, ''); }
+  function padStart2(value, length) {
+    var text = '' + value;
+    while (text.length < length) { text = '0' + text; }
+    return text;
+  }
+
+  /* 每次调用都实时读取系统时间，避免页面挂机后日期时间固定 */
+  function getNowParts() {
+    var n = new Date();
+    return {
+      year: n.getFullYear(),
+      date: n.getFullYear() + '-' + padStart2(n.getMonth() + 1, 2) + '-' + padStart2(n.getDate(), 2),
+      h: padStart2(n.getHours(), 2),
+      m: padStart2(n.getMinutes(), 2)
+    };
+  }
+  var lastCreatedPath = '';
+  var favorites = [];
+  var toastTimer = null;
+
+  function normalizeDateInput(input) {
+    var clean = trimStr(input).replace(/\D/g, '');
+    if (!clean) { return null; }
+    if (clean.length === 4) {
+      return { y: '' + new Date().getFullYear(), m: clean.substring(0, 2), d: clean.substring(2, 4) };
+    }
+    if (clean.length === 8) {
+      return { y: clean.substring(0, 4), m: clean.substring(4, 6), d: clean.substring(6, 8) };
+    }
+    return null;
+  }
+
+  function isValidDate(y, m, d) {
+    var year = parseInt(y, 10);
+    var month = parseInt(m, 10);
+    var day = parseInt(d, 10);
+    if (isNaN(year) || isNaN(month) || isNaN(day)) { return false; }
+    if (month < 1 || month > 12) { return false; }
+    return day >= 1 && day <= new Date(year, month, 0).getDate();
+  }
+
+  function normalizeTimeInput(input) {
+    var raw = trimStr(input);
+    var clean;
+    var parts;
+    if (raw.indexOf('_') !== -1) {
+      parts = raw.split('_');
+      if (parts.length !== 2) { return null; }
+      return { h: padStart2(parts[0], 2), m: padStart2(parts[1], 2) };
+    }
+    clean = raw.replace(/\D/g, '');
+    if (clean.length === 3) {
+      return { h: padStart2(clean.charAt(0), 2), m: padStart2(clean.substring(1), 2) };
+    }
+    if (clean.length === 4) {
+      return { h: clean.substring(0, 2), m: clean.substring(2) };
+    }
+    return null;
+  }
+
+  function isValidTime(h, m) {
+    var hour = parseInt(h, 10);
+    var minute = parseInt(m, 10);
+    return h.length === 2 && m.length === 2 &&
+      !isNaN(hour) && !isNaN(minute) &&
+      hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+  }
+
+  function hasInvalidFolderChars(name) {
+    return /[<>:"\/\\|?*\x00-\x1F]/.test(name) || /[. ]$/.test(name);
+  }
+
+  function buildFolderName() {
+    var rawDate = $('dateInput').value;
+    var rawTime = $('timeInput').value;
+    var project = trimStr($('projectInput').value);
+    var nowParts = getNowParts();
+    var dateStr = nowParts.date;
+    var dateObj;
+    var timeObj;
+
+    if (!project) {
+      showToast('请填写项目名称', 'warning');
+      $('projectInput').focus();
+      return null;
+    }
+    if (hasInvalidFolderChars(project)) {
+      showToast('项目名称含文件夹禁用字符，或以点/空格结尾', 'warning');
+      $('projectInput').focus();
+      return null;
+    }
+
+    if (trimStr(rawDate)) {
+      dateObj = normalizeDateInput(rawDate);
+      if (!dateObj) {
+        showToast('日期格式无效，请试试 0811 或 20260811', 'warning');
+        $('dateInput').focus();
+        return null;
+      }
+      if (!isValidDate(dateObj.y, dateObj.m, dateObj.d)) {
+        showToast('日期无效，请检查月份和日期', 'warning');
+        $('dateInput').focus();
+        return null;
+      }
+      dateStr = dateObj.y + '-' + dateObj.m + '-' + dateObj.d;
+    }
+
+    timeObj = normalizeTimeInput(rawTime);
+    if (!timeObj && !trimStr(rawTime)) {
+      // 时间留空：直接取当前时间（生成那一刻实时读取）
+      timeObj = { h: nowParts.h, m: nowParts.m };
+    }
+    if (!timeObj) {
+      showToast('时间格式无效，请试试 1416 / 905 / 14_16', 'warning');
+      $('timeInput').focus();
+      return null;
+    }
+    if (!isValidTime(timeObj.h, timeObj.m)) {
+      showToast('时间无效：小时 00-23，分钟 00-59', 'warning');
+      $('timeInput').focus();
+      return null;
+    }
+
+    return dateStr + '_' + timeObj.h + '_' + timeObj.m + '-' + project;
+  }
+
+  function generateFolderName() {
+    var folderName = buildFolderName();
+    if (!folderName) { return null; }
+    $('result').textContent = folderName;
+    $('result').style.display = 'block';
+    $('copyBtn').style.display = 'inline-block';
+    return folderName;
+  }
+
+  function normalizeTargetPath(path) {
+    var normalized = trimStr(path).replace(/^"|"$/g, '').replace(/\//g, '\\');
+    while (normalized.length > 3 && /\\$/.test(normalized)) {
+      normalized = normalized.substring(0, normalized.length - 1);
+    }
+    return normalized;
+  }
+
+  function saveTargetPath(path) {
+    try { window.localStorage.setItem('folderNameHelper.targetPath', path); } catch (error) { }
+  }
+
+  function loadTargetPath() {
+    try { return window.localStorage.getItem('folderNameHelper.targetPath') || ''; } catch (error) { return ''; }
+  }
+
+  function chooseTargetPath() {
+    var shellApp;
+    var selected;
+    var current = normalizeTargetPath($('targetPathInput').value);
+    var path = '';
+    try {
+      shellApp = new ActiveXObject('Shell.Application');
+      try {
+        selected = shellApp.BrowseForFolder(0, '请选择新文件夹的保存位置', 81, current || 0);
+      } catch (initialError) {
+        selected = shellApp.BrowseForFolder(0, '请选择新文件夹的保存位置', 81, 0);
+      }
+      if (selected && selected.Self) {
+        path = selected.Self.Path;
+        $('targetPathInput').value = path;
+        saveTargetPath(path);
+        showToast('目标路径已选择', 'success');
+        return path;
+      }
+      showToast('已取消选择路径', 'warning');
+      return '';
+    } catch (error) {
+      showToast('目录选择不可用：' + (error.message || error), 'error');
+      return '';
+    }
+  }
+
+  function showCreateStatus(message, isWarning) {
+    var status = $('createStatus');
+    status.innerText = message;
+    status.className = isWarning ? 'create-status warning' : 'create-status';
+    status.style.display = 'block';
+  }
+
+  function createFolderDirectly() {
+    var folderName = generateFolderName();
+    var targetPath;
+    var fso;
+    var fullPath;
+    if (!folderName) { return; }
+
+    targetPath = normalizeTargetPath($('targetPathInput').value);
+    if (!targetPath) { targetPath = chooseTargetPath(); }
+    if (!targetPath) { return; }
+
+    try {
+      fso = new ActiveXObject('Scripting.FileSystemObject');
+      if (!fso.FolderExists(targetPath)) {
+        showCreateStatus('目标路径不存在或无法访问：' + targetPath, true);
+        showToast('目标路径不存在或无法访问', 'warning');
+        $('targetPathInput').focus();
+        return;
+      }
+
+      fullPath = fso.BuildPath(targetPath, folderName);
+      $('targetPathInput').value = targetPath;
+      saveTargetPath(targetPath);
+
+      if (fso.FolderExists(fullPath)) {
+        lastCreatedPath = fullPath;
+        $('openBtn').style.display = 'inline-block';
+        showCreateStatus('同名文件夹已存在，未重复创建：' + fullPath, true);
+        showToast('同名文件夹已存在，未重复创建', 'warning');
+        return;
+      }
+
+      fso.CreateFolder(fullPath);
+      lastCreatedPath = fullPath;
+      $('openBtn').style.display = 'inline-block';
+      showCreateStatus('创建成功：' + fullPath, false);
+      showToast('文件夹创建成功', 'success');
+    } catch (error) {
+      lastCreatedPath = '';
+      $('openBtn').style.display = 'none';
+      showCreateStatus('创建失败：' + (error.message || error), true);
+      showToast('创建失败，请检查路径与写入权限', 'error');
+    }
+  }
+
+  function openCreatedFolder() {
+    var shell;
+    if (!lastCreatedPath) {
+      showToast('暂无可打开的文件夹', 'warning');
+      return;
+    }
+    try {
+      shell = new ActiveXObject('WScript.Shell');
+      shell.Run('explorer.exe "' + lastCreatedPath + '"', 1, false);
+    } catch (error) {
+      showToast('打开失败：' + (error.message || error), 'error');
+    }
+  }
+
+  function resetForm() {
+    $('dateInput').value = '';
+    $('timeInput').value = '';
+    $('projectInput').value = '';
+    $('result').style.display = 'none';
+    $('copyBtn').style.display = 'none';
+    $('openBtn').style.display = 'none';
+    $('createStatus').style.display = 'none';
+    lastCreatedPath = '';
+    $('dateInput').focus();
+    showToast('已重置命名内容，目标路径与收藏保持不变', 'success');
+  }
+
+  /* ===== 常用位置收藏（本机 localStorage 持久化） ===== */
+  function getFsoSafe() {
+    try { return new ActiveXObject('Scripting.FileSystemObject'); } catch (error) { return null; }
+  }
+
+  function shortenFavName(name) {
+    if (name.length <= 14) { return name; }
+    return name.substring(0, 13) + '…';
+  }
+
+  function favNameFromPath(path) {
+    var parts;
+    var name;
+    if (/^[A-Za-z]:$/.test(path)) {
+      name = path;
+    } else {
+      parts = path.split('\\');
+      name = parts[parts.length - 1] || path;
+    }
+    return shortenFavName(name);
+  }
+
+  /* ===== 收藏持久化：同目录 favorites.json 为主，localStorage 兜底 ===== */
+  var favoritesStorageState = { path: '', fileOk: false, created: false };
+
+  function updateFavStorageHint() {
+    var el = $('favStorageHint');
+    if (!el) { return; }
+    if (favoritesStorageState.fileOk && favoritesStorageState.path) {
+      el.className = 'fav-hint ok';
+      el.innerText = (favoritesStorageState.created ? '✓ 首次使用已在同目录生成收藏文件：' : '✓ 收藏文件：') +
+        favoritesStorageState.path + '（换版本 / 重启 / 摆渡均保留）';
+    } else {
+      el.className = 'fav-hint warn';
+      el.innerText = '⚠ 无法写入同目录 favorites.json，已退回本机缓存；请检查目录写入权限。收藏仍可使用，但换版本可能不保留。';
+    }
+  }
+
+  function getFavoritesFilePath() {
+    var fso = getFsoSafe();
+    var dir = getOwnDir();
+    /* 只认本机路径或 UNC，避免拿不到自身路径时把文件写到 mshta 工作目录 */
+    if (!fso || !dir) { return ''; }
+    if (dir.indexOf(':\\') < 0 && dir.substring(0, 2) !== '\\\\') { return ''; }
+    try { return fso.BuildPath(dir, 'favorites.json'); } catch (e) { return ''; }
+  }
+
+  function writeTextFileUtf8(filePath, text) {
+    var st = new ActiveXObject('ADODB.Stream');
+    st.Type = 2;
+    st.Charset = 'utf-8';
+    st.Open();
+    st.WriteText(text);
+    st.SaveToFile(filePath, 2);
+    st.Close();
+  }
+
+  function readFavoritesFile() {
+    var fso = getFsoSafe();
+    var path = getFavoritesFilePath();
+    var parsed;
+    if (!fso || !path || !fso.FileExists(path)) { return null; }
+    try {
+      parsed = JSON.parse(('' + readTextFileUtf8(path)).replace(/^\uFEFF/, ''));
+    } catch (eParse) { return null; }
+    if (Object.prototype.toString.call(parsed) !== '[object Array]') { return null; }
+    return parsed;
+  }
+
+  function loadFavorites() {
+    var raw = '';
+    var fso;
+    var shell;
+    var defaults = [];
+    var desktop = '';
+    var documents = '';
+    var fromFile;
+    var fromCache;
+
+    /* 1. 文件存在就用文件（哪怕是空数组：删光收藏后不复活） */
+    fromFile = readFavoritesFile();
+    if (fromFile !== null) {
+      favorites = fromFile;
+      saveFavorites();
+      return;
+    }
+
+    /* 2. 文件不存在：把老版本 localStorage 里的收藏迁移过来 */
+    try { raw = window.localStorage.getItem('folderNameHelper.favorites') || ''; } catch (error) { raw = ''; }
+    if (raw) {
+      try { fromCache = JSON.parse(raw); } catch (parseError) { fromCache = null; }
+      if (fromCache && Object.prototype.toString.call(fromCache) === '[object Array]') {
+        favorites = fromCache;
+        saveFavorites();
+        return;
+      }
+    }
+
+    // 3. 真正的首次使用：预置桌面、我的文档（以及存在的 D 盘根目录）
+    fso = getFsoSafe();
+    try {
+      shell = new ActiveXObject('WScript.Shell');
+      desktop = shell.SpecialFolders('Desktop') || '';
+      documents = shell.SpecialFolders('MyDocuments') || '';
+    } catch (shellError) {
+      desktop = '';
+      documents = '';
+    }
+    if (desktop) { defaults.push({ name: '桌面', path: desktop }); }
+    if (documents) { defaults.push({ name: '我的文档', path: documents }); }
+    if (fso && fso.FolderExists('D:\\')) { defaults.push({ name: 'D 盘', path: 'D:\\' }); }
+    favorites = defaults;
+    saveFavorites();
+  }
+
+  function saveFavorites() {
+    var text = JSON.stringify(favorites);
+    var path = getFavoritesFilePath();
+    var fso = getFsoSafe();
+    var existed = false;
+    var ok = false;
+    favoritesStorageState.path = path;
+    if (fso && path) {
+      try { existed = fso.FileExists(path); } catch (eExists) { }
+      try {
+        writeTextFileUtf8(path, text);
+        ok = true;
+        if (!existed) { favoritesStorageState.created = true; }
+      } catch (eFile) { ok = false; }
+    }
+    favoritesStorageState.fileOk = ok;
+    try { window.localStorage.setItem('folderNameHelper.favorites', text); } catch (eCache) { }
+    updateFavStorageHint();
+    return ok;
+  }
+
+  function renderFavorites() {
+    var list = $('favList');
+    var row = $('favRow');
+    var index;
+    var item;
+    var pickBtn;
+    var delBtn;
+    var addBtn;
+
+    while (list.firstChild) { list.removeChild(list.firstChild); }
+
+    for (index = 0; index < favorites.length; index++) {
+      item = document.createElement('span');
+      item.className = 'fav-item-wrap';
+
+      pickBtn = document.createElement('button');
+      pickBtn.type = 'button';
+      pickBtn.className = 'fav-btn';
+      pickBtn.title = favorites[index].path;
+      pickBtn.innerText = '📁 ' + favorites[index].name;
+      pickBtn.onclick = function (i) {
+        return function () { pickFavorite(i); };
+      }(index);
+
+      delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'fav-del';
+      delBtn.title = '删除收藏：' + favorites[index].path;
+      delBtn.innerText = '×';
+      delBtn.onclick = function (i) {
+        return function () { removeFavorite(i); };
+      }(index);
+
+      item.appendChild(pickBtn);
+      item.appendChild(delBtn);
+      list.appendChild(item);
+    }
+
+    addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'fav-add';
+    addBtn.title = '把当前“目标路径”加入常用位置';
+    addBtn.innerText = '★ 添加当前路径';
+    addBtn.onclick = function () { addFavoriteFromInput(); };
+    list.appendChild(addBtn);
+
+    row.style.display = 'block';
+  }
+
+  function pickFavorite(index) {
+    var fav = favorites[index];
+    if (!fav) { return; }
+    $('targetPathInput').value = fav.path;
+    saveTargetPath(fav.path);
+    showToast('已填入常用位置：' + fav.name, 'success');
+  }
+
+  function addFavoriteFromInput() {
+    var path = normalizeTargetPath($('targetPathInput').value);
+    var fso;
+    var index;
+    if (!path) {
+      showToast('请先在目标路径中输入或选择一个目录', 'warning');
+      $('targetPathInput').focus();
+      return;
+    }
+    fso = getFsoSafe();
+    if (fso && !fso.FolderExists(path)) {
+      showToast('该路径不存在或无法访问：' + path, 'warning');
+      return;
+    }
+    for (index = 0; index < favorites.length; index++) {
+      if (favorites[index].path.toLowerCase() === path.toLowerCase()) {
+        showToast('该位置已在收藏中', 'warning');
+        return;
+      }
+    }
+    favorites.push({ name: favNameFromPath(path), path: path });
+    saveFavorites();
+    renderFavorites();
+    showToast('已添加到常用位置', 'success');
+  }
+
+  function removeFavorite(index) {
+    var fav = favorites[index];
+    if (!fav) { return; }
+    if (!window.confirm('确定删除收藏“' + fav.name + '”（' + fav.path + '）？')) { return; }
+    favorites.splice(index, 1);
+    saveFavorites();
+    renderFavorites();
+    showToast('已删除该收藏', 'success');
+  }
+
+  /* ---------- 复制 ---------- */
+  function fallbackCopy(text) {
+    var textarea = document.createElement('textarea');
+    var ok = false;
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try { ok = document.execCommand('copy'); } catch (error) { ok = false; }
+    document.body.removeChild(textarea);
+    return ok;
+  }
+
+  function copyToClipboard() {
+    var text = $('result').textContent;
+    var ok = false;
+    if (!text) { return; }
+    try {
+      if (window.clipboardData && window.clipboardData.setData) {
+        ok = window.clipboardData.setData('Text', text);
+      }
+    } catch (error) { ok = false; }
+    if (!ok) { ok = fallbackCopy(text); }
+    showToast(ok ? '已复制' : '复制失败，请手动复制', ok ? 'success' : 'warning');
+  }
+
+  /* ---------- 关闭重复文件夹窗口（仅 HTA 支持） ---------- */
+  var pendingCloseList = [];
+  var lastShellScanRaw = [];
+  var lastPsScanRaw = [];
+  var lastMergeInfo = { shellCount: 0, psCount: 0, psError: '' };
+
+  function readPsOutput(tmp) {
+    var text = '';
+    try { text = readTextFileUtf8(tmp); } catch (eUtf8) { }
+    if (!text || text.indexOf('\u0000') >= 0) {
+      try {
+        var st = new ActiveXObject('ADODB.Stream');
+        st.Type = 2;
+        st.Charset = 'unicode';
+        st.Open();
+        st.LoadFromFile(tmp);
+        text = st.ReadText();
+        st.Close();
+      } catch (eUni) { }
+    }
+    return ('' + text).replace(/^\uFEFF/, '');
+  }
+
+  /* PowerShell + UIAutomation 枚举所有真实资源管理器窗口，补上 Shell.Windows() 漏掉的重复窗口 */
+  function runPowerShell(psCode) {
+    var shell = new ActiveXObject('WScript.Shell');
+    var fso = getFsoSafe();
+    if (!fso) { return ''; }
+    var tmp = fso.BuildPath(fso.GetSpecialFolder(2), 'fnh_winscan_' + (new Date()).getTime() + '.txt');
+    var cmd = 'cmd /c powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "' + psCode + '" > "' + tmp + '" 2>nul';
+    var text = '';
+    try {
+      shell.Run(cmd, 0, true);
+      text = readPsOutput(tmp);
+    } catch (eRun) { text = ''; }
+    try { fso.DeleteFile(tmp, true); } catch (eDel) { }
+    return text;
+  }
+
+  function psWindowList() {
+    var ps = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;Add-Type -AssemblyName UIAutomationClient;$r=[System.Windows.Automation.AutomationElement]::RootElement;$a=$r.FindAll([System.Windows.Automation.TreeScope]::Children,[System.Windows.Automation.Condition]::TrueCondition);foreach($w in $a){$c=$w.Current.ClassName;if($c -eq 'CabinetWClass' -or $c -eq 'ExploreWClass'){Write-Output ($w.Current.NativeWindowHandle.ToString()+'|'+$w.Current.Name)}}";
+    var out = runPowerShell(ps);
+    var lines = out.split(/\r?\n/);
+    var list = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = trimStr(lines[i]).replace(/^\uFEFF/, '');
+      if (!line) { continue; }
+      var p = line.indexOf('|');
+      if (p < 0) { continue; }
+      var title = line.substring(p + 1).replace(/ - (文件资源管理器|File Explorer|Windows Explorer)$/i, '');
+      list.push({ hwnd: line.substring(0, p), title: title });
+    }
+    if (!list.length) { throw new Error('PowerShell 未返回窗口（可能被策略禁用或不带 UIAutomation）'); }
+    return list;
+  }
+
+  function closeWindowsByHwnd(hwnds) {
+    var ps = "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;Add-Type -AssemblyName UIAutomationClient;$ids=@(" + hwnds.join(',') + ");$r=[System.Windows.Automation.AutomationElement]::RootElement;$a=$r.FindAll([System.Windows.Automation.TreeScope]::Children,[System.Windows.Automation.Condition]::TrueCondition);foreach($w in $a){if($ids -contains $w.Current.NativeWindowHandle){try{$p=$w.GetCurrentPattern([System.Windows.Automation.WindowPattern]::Pattern);$p.Close();Write-Output ('OK|'+$w.Current.NativeWindowHandle)}catch{Write-Output ('ERR|'+$w.Current.NativeWindowHandle)}}}";
+    var out = runPowerShell(ps);
+    var ok = (out.match(/OK\|/g) || []).length;
+    return { closed: ok, failed: hwnds.length - ok };
+  }
+
+  function basenameOfPath(path) {
+    var p = path.replace(/[\\\/]+$/, '');
+    var i = p.lastIndexOf('\\');
+    return i >= 0 ? p.substring(i + 1) : p;
+  }
+
+  function hwndKey(value) {
+    var n = parseInt(value, 10);
+    return isNaN(n) ? ('' + value).toLowerCase() : '' + n;
+  }
+
+  /* Shell 结果按句柄/名称建立分组键，PowerShell 补进来的窗口复用同一分组键 */
+  function mergeWindowLists(shellList, psList) {
+    var byHwnd = {};
+    var byName = {};
+    for (var i = 0; i < shellList.length; i++) {
+      if (shellList[i].hwnd) { byHwnd[hwndKey(shellList[i].hwnd)] = true; }
+      if (shellList[i].title) { byName[trimStr(shellList[i].title).toLowerCase()] = shellList[i].path; }
+      byName[basenameOfPath(shellList[i].path).toLowerCase()] = shellList[i].path;
+    }
+    var merged = shellList.slice(0);
+    for (var j = 0; j < psList.length; j++) {
+      if (byHwnd[hwndKey(psList[j].hwnd)]) { continue; }
+      var t = trimStr(psList[j].title);
+      if (!t) { continue; }
+      var key = byName[t.toLowerCase()] || ('【' + t + '】');
+      merged.push({ win: null, hwnd: psList[j].hwnd, path: key, title: t, fromPs: true });
+    }
+    return merged;
+  }
+
+  function getExplorerWindows() {
+    var shellApp = new ActiveXObject('Shell.Application');
+    var wins = shellApp.Windows();
+    var list = [];
+    var raw = [];
+    var count = 0;
+    try { count = wins.Count; } catch (e) { count = 0; }
+    for (var i = 0; i < count; i++) {
+      var w = null;
+      var item = { index: i + 1, url: '', title: '', fullName: '', key: '', skipped: '' };
+      try { w = wins.Item(i); } catch (e1) { w = null; }
+      if (!w) { item.skipped = '窗口对象读取失败'; raw.push(item); continue; }
+
+      var url = '';
+      var title = '';
+      var fullName = '';
+      var hwnd = '';
+      var isFolder = false;
+      var isExplorer = false;
+      try {
+        url = '' + (w.LocationURL || '');
+        fullName = '' + (w.FullName || '');
+        try { hwnd = '' + (w.HWND || ''); } catch (eHwnd) { hwnd = ''; }
+        isExplorer = /\\explorer\.exe$/i.test(fullName);
+        if (w.Document && w.Document.Folder) {
+          isFolder = true;
+          title = '' + (w.Document.Folder.Title || '');
+        }
+      } catch (e2) { }
+      /* 兜底：部分虚拟目录取不到 Folder 对象，但确实是资源管理器窗口，用窗口标题识别 */
+      if (isExplorer && !isFolder) {
+        try {
+          if (w.Document && w.Document.Title) {
+            isFolder = true;
+            title = '' + w.Document.Title;
+          }
+        } catch (e4) { }
+      }
+      item.url = url;
+      item.title = title;
+      item.fullName = fullName;
+      item.hwnd = hwnd;
+
+      if (!isFolder) {
+        item.skipped = '非资源管理器文件夹窗口（已排除）';
+        raw.push(item);
+        continue;
+      }
+
+      if (url.indexOf('file:///') === 0) {
+        /* 真实文件夹：按完整路径分组 */
+        var path = '';
+        try { path = decodeURIComponent(url.substring(8)).replace(/\//g, '\\'); } catch (e3) { path = ''; }
+        if (path.length > 3 && path.charAt(path.length - 1) === '\\') { path = path.substring(0, path.length - 1); }
+        if (!path) {
+          item.skipped = '路径解析失败';
+          raw.push(item);
+          continue;
+        }
+        item.key = path;
+        list.push({ win: w, path: path, hwnd: hwnd, title: title || basenameOfPath(path) });
+      } else if (title) {
+        /* 此电脑/桌面/回收站等虚拟目录没有文件路径，改用窗口名称分组 */
+        item.key = '【' + title + '】';
+        list.push({ win: w, path: item.key, hwnd: hwnd, title: title });
+      } else {
+        item.skipped = '无路径且无窗口名称';
+      }
+      raw.push(item);
+    }
+    lastShellScanRaw = raw;
+    return list;
+  }
+
+  function markDuplicatesToClose(windows) {
+    /* 枚举顺序近似打开顺序：同一路径保留最早出现的窗口，其余标记关闭 */
+    var seen = {};
+    var toClose = [];
+    for (var i = 0; i < windows.length; i++) {
+      var key = windows[i].path.toLowerCase();
+      if (!seen[key]) {
+        seen[key] = { path: windows[i].path, total: 1 };
+      } else {
+        seen[key].total++;
+        toClose.push(windows[i]);
+      }
+    }
+    var groups = [];
+    for (var k in seen) {
+      if (seen.hasOwnProperty(k) && seen[k].total > 1) { groups.push(seen[k]); }
+    }
+    return { groups: groups, toClose: toClose };
+  }
+
+  function escapeHtmlText(text) {
+    return ('' + text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function buildDupScanHtml(windows) {
+    var html = '<div class="dup-group"><div class="dup-info">Shell 共返回 ' + lastShellScanRaw.length +
+      ' 个窗口（识别 ' + lastMergeInfo.shellCount + ' 个）；UIAutomation 补到 ' + lastMergeInfo.psCount +
+      ' 个顶层资源管理器窗口；合并后共 ' + windows.length + ' 个。只有「分组键」相同才会判为重复' +
+      (lastMergeInfo.psError ? '。⚠ UIAutomation 不可用：' + escapeHtmlText(lastMergeInfo.psError) : '') + '</div></div>';
+    for (var i = 0; i < lastShellScanRaw.length; i++) {
+      var item = lastShellScanRaw[i];
+      var head = (i + 1) + '. ' + (item.key ? ('分组键：' + item.key) : ('已跳过：' + item.skipped));
+      html += '<div class="dup-group"><div class="dup-path">' + escapeHtmlText(head) +
+        '</div><div class="dup-info">窗口标题：' + escapeHtmlText(item.title || '-') +
+        ' ｜ 句柄：' + escapeHtmlText(item.hwnd || '-') +
+        ' ｜ 进程：' + escapeHtmlText(item.fullName || '-') +
+        '</div><div class="dup-info">地址：' + escapeHtmlText(item.url || '-') + '</div></div>';
+    }
+    for (var j = 0; j < lastPsScanRaw.length; j++) {
+      html += '<div class="dup-group"><div class="dup-path">UIA ' + (j + 1) + '. ' +
+        escapeHtmlText(lastPsScanRaw[j].title || '-') + '（句柄 ' + escapeHtmlText(lastPsScanRaw[j].hwnd) +
+        '）</div><div class="dup-info">来自 PowerShell 通道，按标题归并到同名分组</div></div>';
+    }
+    return html;
+  }
+
+  function toggleDupScanList() {
+    var el = $('dupScanList');
+    var show = el.style.display !== 'block';
+    el.style.display = show ? 'block' : 'none';
+    $('dupScanBtn').innerText = show ? '🔍 收起清单' : '🔍 窗口清单';
+  }
+
+  function openDuplicateCleaner() {
+    var shellList;
+    try {
+      shellList = getExplorerWindows();
+    } catch (e) {
+      showToast('无法访问系统窗口列表：' + (e.message || e.description || '未知错误'), 'error');
+      return;
+    }
+    var psList = [];
+    var psError = '';
+    try {
+      psList = psWindowList();
+      lastPsScanRaw = psList;
+    } catch (ePs) {
+      psError = ePs.message || ePs.description || '未知错误';
+      psList = [];
+      lastPsScanRaw = [];
+    }
+    var windows = mergeWindowLists(shellList, psList);
+    lastMergeInfo = { shellCount: shellList.length, psCount: psList.length, psError: psError };
+    var result = markDuplicatesToClose(windows);
+    pendingCloseList = result.groups.length ? result.toClose : [];
+    var html = '';
+    if (!windows.length) {
+      html += '<div class="dup-group"><div class="dup-path">未识别到任何文件夹窗口</div><div class="dup-info">请展开「窗口清单」查看被跳过的窗口及原因</div></div>';
+    } else if (!result.groups.length) {
+      html += '<div class="dup-group"><div class="dup-path">未发现重复打开的文件夹</div><div class="dup-info">共识别 ' + windows.length + ' 个文件夹窗口，分组键各不相同</div></div>';
+    } else {
+      for (var i = 0; i < result.groups.length; i++) {
+        var g = result.groups[i];
+        html += '<div class="dup-group"><div class="dup-path">📁 ' + escapeHtmlText(g.path) +
+          '</div><div class="dup-info">共打开 ' + g.total + ' 个 → 保留最早打开的 1 个，关闭 ' + (g.total - 1) + ' 个</div></div>';
+      }
+    }
+    $('dupList').innerHTML = html;
+    $('dupScanList').innerHTML = buildDupScanHtml(windows);
+    $('dupConfirmBtn').style.display = result.groups.length ? '' : 'none';
+    var autoOpen = !result.groups.length;
+    $('dupScanList').style.display = autoOpen ? 'block' : 'none';
+    $('dupScanBtn').innerText = autoOpen ? '🔍 收起清单' : '🔍 窗口清单';
+    $('dupMask').style.display = 'block';
+    $('dupBox').style.display = 'block';
+  }
+
+  function confirmCloseDuplicates() {
+    var closed = 0;
+    var failed = 0;
+    var psHwnds = [];
+    var shellHwnds = {};
+    for (var s = 0; s < lastShellScanRaw.length; s++) {
+      if (lastShellScanRaw[s].hwnd) { shellHwnds[hwndKey(lastShellScanRaw[s].hwnd)] = true; }
+    }
+    for (var i = 0; i < pendingCloseList.length; i++) {
+      var item = pendingCloseList[i];
+      if (item.win) {
+        try { item.win.Quit(); closed++; } catch (e) { failed++; }
+      } else if (item.hwnd && !shellHwnds[hwndKey(item.hwnd)]) {
+        /* 只关 Shell 没登记到的窗口，避免同一窗口被关两次 */
+        psHwnds.push(item.hwnd);
+      }
+    }
+    if (psHwnds.length) {
+      try {
+        var res = closeWindowsByHwnd(psHwnds);
+        closed += res.closed;
+        failed += res.failed;
+      } catch (ePsClose) {
+        failed += psHwnds.length;
+      }
+    }
+    cancelCloseDuplicates();
+    if (closed) {
+      showToast('已关闭 ' + closed + ' 个重复窗口' + (failed ? ('，' + failed + ' 个失败') : ''), failed ? 'warning' : 'success');
+    } else {
+      showToast('没有窗口被关闭（窗口可能已提前手动关闭）', 'warning');
+    }
+    pendingCloseList = [];
+  }
+
+  function cancelCloseDuplicates() {
+    $('dupMask').style.display = 'none';
+    $('dupBox').style.display = 'none';
+    pendingCloseList = [];
+  }
+
+  /* ---------- 检查更新 / 切换版本（仅 HTA 支持） ---------- */
+  var CURRENT_VERSION = '2.0.5';
+  var MANIFEST_ONLINE_URL = 'https://kuguahahaha.github.io/folder-name-helper/version.json';
+  var MANIFEST_BASE = 'https://kuguahahaha.github.io/folder-name-helper/';
+  var versionListCache = [];
+
+  function normalizeHtaPath(raw) {
+    var p = '' + (raw || '');
+    if (p.indexOf('file:///') === 0) { p = p.substring(8); }
+    else if (p.indexOf('file://') === 0) { p = p.substring(7); }
+    p = p.split('?')[0].split('#')[0];
+    try { p = decodeURIComponent(p); } catch (e) { }
+    p = p.replace(/\//g, '\\');
+    /* location.pathname 常返回 /D:/... 形式，去掉最前面的反斜杠 */
+    if (p.charAt(0) === '\\' && /^[A-Za-z]:/.test(p.substring(1))) { p = p.substring(1); }
+    /* 盘符之后合并多余反斜杠（含紧接盘符的那些）；UNC 路径（\\server\share）保持原样 */
+    if (/^[A-Za-z]:\\/.test(p)) {
+      p = p.substring(0, 2) + '\\' + p.substring(3).replace(/^\\+/, '').replace(/\\+/g, '\\');
+    }
+    return p;
+  }
+
+  function isValidOwnPath(p) {
+    return /^[A-Za-z]:\\/.test(p) || p.substring(0, 2) === '\\\\';
+  }
+
+  /* 多来源取自身路径，任一可用即可，确保能定位到 HTA 同目录 */
+  function getOwnHtaPath() {
+    var candidates = [];
+    try { candidates.push('' + window.location.href); } catch (e1) { }
+    try { candidates.push('' + document.URL); } catch (e2) { }
+    try { candidates.push('' + window.location.pathname); } catch (e3) { }
+    for (var i = 0; i < candidates.length; i++) {
+      var p = normalizeHtaPath(candidates[i]);
+      if (isValidOwnPath(p) && /\.hta$/i.test(p)) { return p; }
+    }
+    return '';
+  }
+
+  function getOwnDir() {
+    var p = getOwnHtaPath();
+    var i = p.lastIndexOf('\\');
+    return i > 0 ? p.substring(0, i) : '';
+  }
+
+  function getOwnFileName() {
+    var p = getOwnHtaPath();
+    var i = p.lastIndexOf('\\');
+    return i >= 0 ? p.substring(i + 1) : p;
+  }
+
+  /* 优先从自身文件名解析版本，避免复制新版本文件时忘记改常量 */
+  function getOwnVersion() {
+    var m = /文件夹命名助手v(\d+(?:\.\d+)*)\.hta/i.exec(getOwnFileName());
+    return m ? m[1] : CURRENT_VERSION;
+  }
+
+  function parseVersion(text) {
+    var clean = ('' + text).replace(/^v/i, '').replace(/[^0-9.]/g, '');
+    var parts = clean.split('.');
+    var out = [];
+    for (var i = 0; i < parts.length; i++) {
+      out.push(parseInt(parts[i], 10) || 0);
+    }
+    return out;
+  }
+
+  function compareVersion(a, b) {
+    var pa = parseVersion(a);
+    var pb = parseVersion(b);
+    var len = pa.length > pb.length ? pa.length : pb.length;
+    for (var i = 0; i < len; i++) {
+      var x = pa[i] || 0;
+      var y = pb[i] || 0;
+      if (x > y) { return 1; }
+      if (x < y) { return -1; }
+    }
+    return 0;
+  }
+
+  function createHttpRequest() {
+    var progIds = ['MSXML2.ServerXMLHTTP.6.0', 'MSXML2.ServerXMLHTTP.3.0', 'MSXML2.XMLHTTP', 'Microsoft.XMLHTTP'];
+    for (var i = 0; i < progIds.length; i++) {
+      try { return new ActiveXObject(progIds[i]); } catch (e) { }
+    }
+    throw new Error('系统缺少 HTTP 组件');
+  }
+
+  function httpGet(url, timeoutMs) {
+    var xhr = createHttpRequest();
+    try { if (xhr.setTimeouts) { xhr.setTimeouts(timeoutMs, timeoutMs, timeoutMs, timeoutMs); } } catch (eT) { }
+    xhr.open('GET', url, false);
+    try { xhr.setRequestHeader('Cache-Control', 'no-cache'); } catch (eH) { }
+    xhr.send();
+    return xhr;
+  }
+
+  function readTextFileUtf8(filePath) {
+    var stream = new ActiveXObject('ADODB.Stream');
+    stream.Type = 2;
+    stream.Charset = 'utf-8';
+    stream.Open();
+    stream.LoadFromFile(filePath);
+    var text = stream.ReadText();
+    stream.Close();
+    return text;
+  }
+
+  function readLocalManifest() {
+    var fso = getFsoSafe();
+    if (!fso) { return null; }
+    var path = fso.BuildPath(getOwnDir(), 'version.json');
+    if (!fso.FileExists(path)) { return null; }
+    try { return JSON.parse(readTextFileUtf8(path)); } catch (e) { return null; }
+  }
+
+  function openVersionModal(title, bodyHtml, actions) {
+    $('verTitle').innerHTML = title;
+    $('verBody').innerHTML = bodyHtml;
+    var box = $('verActions');
+    box.innerHTML = '';
+    for (var i = 0; i < actions.length; i++) {
+      (function (act) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.innerHTML = act.label;
+        btn.className = act.style === 'primary' ? 'ver-primary' : 'ver-plain';
+        btn.onclick = act.handler;
+        box.appendChild(btn);
+      })(actions[i]);
+    }
+    $('verMask').style.display = 'block';
+    $('verBox').style.display = 'block';
+  }
+
+  function closeVersionModal() {
+    $('verMask').style.display = 'none';
+    $('verBox').style.display = 'none';
+  }
+
+  function launchHtaFile(path, closeSelf) {
+    try {
+      var shell = new ActiveXObject('WScript.Shell');
+      shell.Run('"' + path + '"', 1, false);
+    } catch (e) {
+      showToast('启动失败：' + (e.message || e.description || '未知错误'), 'error');
+      return;
+    }
+    if (closeSelf) {
+      setTimeout(function () { window.close(); }, 600);
+    }
+  }
+
+  function checkUpdate() {
+    var manifest = null;
+    var fromLocal = false;
+    try {
+      manifest = readLocalManifest();
+      if (manifest) { fromLocal = true; }
+    } catch (eL) { manifest = null; }
+
+    if (!manifest) {
+      try {
+        var resp = httpGet(MANIFEST_ONLINE_URL, 6000);
+        if (resp.status < 200 || resp.status >= 300) { throw new Error('HTTP ' + resp.status); }
+        manifest = JSON.parse(resp.responseText);
+      } catch (e) {
+        showToast('检查更新失败：无网络，或线上尚未发布版本清单', 'warning');
+        return;
+      }
+    }
+
+    if (!manifest || !manifest.latest) {
+      showToast('版本清单格式无效，缺少 latest 字段', 'warning');
+      return;
+    }
+
+    if (compareVersion(manifest.latest, getOwnVersion()) <= 0) {
+      showToast('已是最新版本 v' + getOwnVersion(), 'success');
+      return;
+    }
+
+    var fso = getFsoSafe();
+    var targetPath = getOwnDir() + '\\文件夹命名助手v' + manifest.latest + '.hta';
+    var exists = false;
+    try { exists = !!(fso && fso.FileExists(targetPath)); } catch (e2) { exists = false; }
+
+    var body = '<div class="dup-group"><div class="dup-path">🎉 发现新版本 v' + escapeHtmlText(manifest.latest) +
+      '（当前 v' + getOwnVersion() + '）</div><div class="dup-info">清单来源：' +
+      (fromLocal ? '同目录 version.json' : '线上版本清单') + '</div></div>';
+    if (manifest.notes) {
+      body += '<div class="dup-group"><div class="dup-info">' + escapeHtmlText(manifest.notes) + '</div></div>';
+    }
+
+    if (exists) {
+      body += '<div class="dup-group"><div class="dup-info">该版本文件已在本目录，可直接启动</div></div>';
+      openVersionModal('⬇ 发现新版本', body, [
+        { label: '立即启动新版', style: 'primary', handler: function () { launchHtaFile(targetPath, true); } },
+        { label: '取消', style: 'plain', handler: closeVersionModal }
+      ]);
+      return;
+    }
+
+    if (!manifest.downloadUrl) {
+      showToast('版本清单缺少 downloadUrl，无法下载新版', 'warning');
+      return;
+    }
+
+    body += '<div class="dup-group"><div class="dup-info">将下载到：' + escapeHtmlText(targetPath) + '</div></div>';
+    openVersionModal('⬇ 发现新版本', body, [
+      { label: '下载并保存', style: 'primary', handler: function () { downloadNewVersion(manifest, targetPath); } },
+      { label: '取消', style: 'plain', handler: closeVersionModal }
+    ]);
+  }
+
+  function downloadNewVersion(manifest, targetPath) {
+    var url = '' + manifest.downloadUrl;
+    if (url.indexOf('http') !== 0) { url = MANIFEST_BASE + url.replace(/^\//, ''); }
+    closeVersionModal();
+    showToast('正在下载 v' + manifest.latest + '…', 'info');
+    try {
+      var resp = httpGet(url, 15000);
+      if (resp.status < 200 || resp.status >= 300) { throw new Error('HTTP ' + resp.status); }
+      var stream = new ActiveXObject('ADODB.Stream');
+      stream.Type = 1;
+      stream.Open();
+      stream.Write(resp.responseBody);
+      stream.SaveToFile(targetPath, 2);
+      stream.Close();
+    } catch (e) {
+      showToast('下载失败：' + (e.message || e.description || '未知错误'), 'error');
+      return;
+    }
+    showToast('新版本已保存到本机', 'success');
+    if (window.confirm('下载完成：\n' + targetPath + '\n\n现在启动新版本吗？（当前窗口将关闭）')) {
+      launchHtaFile(targetPath, true);
+    }
+  }
+
+  function openVersionSwitch() {
+    var fso = getFsoSafe();
+    if (!fso) {
+      showToast('无法访问文件系统', 'error');
+      return;
+    }
+    var list = [];
+    try {
+      var folder = fso.GetFolder(getOwnDir());
+      var files = new Enumerator(folder.Files);
+      for (; !files.atEnd(); files.moveNext()) {
+        var f = files.item();
+        var name = '' + f.Name;
+        if (/^文件夹命名助手v\d+(\.\d+)*\.hta$/i.test(name)) {
+          list.push({
+            name: name,
+            path: '' + f.Path,
+            version: name.replace(/^文件夹命名助手v/i, '').replace(/\.hta$/i, '')
+          });
+        }
+      }
+    } catch (e) {
+      showToast('枚举本地版本失败：' + (e.message || e.description || '未知错误'), 'error');
+      return;
+    }
+
+    if (!list.length) {
+      showToast('本目录未找到任何 HTA 版本文件', 'warning');
+      return;
+    }
+
+    list.sort(function (a, b) { return compareVersion(b.version, a.version); });
+    versionListCache = list;
+    var ownName = getOwnFileName().toLowerCase();
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      var isCurrent = list[i].name.toLowerCase() === ownName;
+      html += '<div class="ver-item' + (isCurrent ? ' current' : '') + '">' +
+        '<button type="button" onclick="launchVersionAt(' + i + ')"' + (isCurrent ? ' disabled="disabled"' : '') + '>' +
+        (isCurrent ? '当前' : '启动') + '</button>' +
+        '<div class="ver-name">' + escapeHtmlText(list[i].name) + '</div></div>';
+    }
+    html += '<div class="dup-group"><div class="dup-info">共 ' + list.length + ' 个本地版本；启动其他版本后，当前窗口会自动关闭</div></div>';
+    openVersionModal('⇄ 切换本地版本', html, [
+      { label: '关闭', style: 'plain', handler: closeVersionModal }
+    ]);
+  }
+
+  function launchVersionAt(index) {
+    var item = versionListCache[index];
+    if (!item) { return; }
+    if (!window.confirm('启动 ' + item.name + ' ？\n\n当前窗口将关闭。')) { return; }
+    closeVersionModal();
+    launchHtaFile(item.path, true);
+  }
+
+  /* ---------- Toast ---------- */
+  function showToast(message, type) {
+    var toast = $('toast');
+    type = type || 'success';
+    toast.innerText = message;
+    toast.className = 'toast show ' + type;
+    if (toastTimer) { clearTimeout(toastTimer); }
+    toastTimer = setTimeout(function () {
+      toast.className = 'toast ' + type;
+    }, 2400);
+  }
+
+  function toggleChangelog() {
+    var body = $('clBody');
+    var arrow = $('clArrow');
+    if (body.style.display === 'block') {
+      body.style.display = 'none';
+      arrow.innerHTML = '▼';
+    } else {
+      body.style.display = 'block';
+      arrow.innerHTML = '▲';
+    }
+  }
+
+  /* ---------- 初始化 ---------- */
+  window.onload = function () {
+    try {
+      var width = Math.min(760, screen.availWidth - 60);
+      var height = Math.min(960, screen.availHeight - 60);
+      window.resizeTo(width, height);
+      window.moveTo(Math.round((screen.availWidth - width) / 2), Math.round((screen.availHeight - height) / 2));
+    } catch (error) { }
+
+    $('projectInput').onkeypress = function (event) {
+      event = event || window.event;
+      var code = event.keyCode || event.which;
+      if (code === 13) {
+        if (event.preventDefault) { event.preventDefault(); } else { event.returnValue = false; }
+        generateFolderName();
+        return false;
+      }
+      return true;
+    };
+
+    loadFavorites();
+    $('targetPathInput').value = loadTargetPath();
+    renderFavorites();
+    $('dateInput').focus();
+  };
+</script>
+</body>
+</html>
