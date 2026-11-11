@@ -67,8 +67,10 @@ V1.0.0
 
 | 入口 | 链接 |
 |---|---|
-| 最新版（v2.0.5） | https://kuguahahaha.github.io/folder-name-helper/ |
+| 最新版（v2.0.6） | https://kuguahahaha.github.io/folder-name-helper/ |
 | 版本列表（全部历史版本） | https://kuguahahaha.github.io/folder-name-helper/versions/ |
+| v2.0.6 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.6.html |
+| v2.0.6 Windows 版下载 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.6.hta |
 | v2.0.5 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.5.html |
 | v2.0.5 Windows 版下载 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.5.hta |
 | v2.0.4 直达 | https://kuguahahaha.github.io/folder-name-helper/versions/v2.0.4.html |
@@ -105,3 +107,9 @@ V1.0.0
 • 新增「检查更新 / 切换版本」（HTA）：读取同目录或线上 version.json，新版另存新文件并可立即启动；可列出并启动本地全部 HTA 版本
 • 常用位置收藏改为同目录 favorites.json 文件持久化，换版本/重启/摆渡都保留，首次运行自动生成
 • 新增根 version.json 版本清单（latest / downloadUrl / notes）
+
+## 📂 V2.0.6（2026-11-11）
+• 新建文件夹后，结果名称与创建状态提示变成可点击链接（末尾显示「📂 点击打开」），HTA 版点击直接调用资源管理器打开该目录；同名目录已存在时同样可打开
+• 重新生成名称 / 创建失败 / 重置会自动撤销可点击状态，避免误开上一次的旧目录
+• 浏览器版因安全沙箱无法启动资源管理器：点击自动复制文件夹名称，并展开说明面板（含 HTA 本地版下载入口）
+• 两版新增 V2.0.6 更新日志；HTA 保持 ES5/IE11 兼容；版本清单 version.json 同步更新至 2.0.6
