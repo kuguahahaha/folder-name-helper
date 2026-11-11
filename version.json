@@ -1,5 +1,5 @@
 {
-  "latest": "2.0.5",
-  "downloadUrl": "versions/v2.0.5.hta",
-  "notes": "v2.0.5：修复挂机后日期时间固定；新增关闭重复文件夹窗口；新增检查更新与切换版本"
+  "latest": "2.0.6",
+  "downloadUrl": "versions/v2.0.6.hta",
+  "notes": "v2.0.6：新建文件夹后可点击结果名称或状态提示直接打开（HTA 调用资源管理器）；浏览器版改为点击复制名称并给出 HTA 入口"
 }
