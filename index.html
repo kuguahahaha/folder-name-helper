@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>文件夹命名助手 V2.0.5</title>
+  <title>文件夹命名助手 V2.0.6</title>
   <style>
     :root {
       --primary: #4361ee;
@@ -269,6 +269,57 @@
       color: #916000;
     }
 
+    /* ===== v2.0.6：创建成功后，结果/状态可点击 ===== */
+    #result.openable, .create-status.openable { cursor: pointer; }
+    #result.openable { border-color: #9de0cd; }
+    #result.openable:hover, .create-status.openable:hover { border-color: #06b98b; }
+    .create-status.warning.openable:hover { background: #fff2d6; }
+    #result.openable::after, .create-status.openable::after {
+      content: "📂 点击查看打开方式";
+      display: inline-block;
+      margin-left: 10px;
+      font-family: "Microsoft YaHei", sans-serif;
+      font-size: 0.72rem;
+      font-weight: normal;
+      color: #06a37a;
+      text-decoration: none;
+    }
+    .create-status.warning.openable::after { color: #a06a00; }
+
+    .open-hint {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border: 1px dashed #f0cd88;
+      border-radius: 8px;
+      background: #fffaf0;
+      color: #7a5a10;
+      font-size: 0.85rem;
+      line-height: 1.75;
+    }
+    .open-hint strong { color: #916000; }
+    .open-hint .hint-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .open-hint button,
+    .open-hint a {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      font-size: 0.82rem;
+      border: 1px solid #e0c68a;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #7a5a10;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .open-hint button:hover, .open-hint a:hover { background: #fff2d6; }
+
     /* ===== 常用位置收藏栏（重置按钮下方） ===== */
     .fav-bar {
       display: none;
@@ -413,7 +464,7 @@
 <body>
   <div class="header">
     <h2>📁 文件夹命名助手</h2>
-    <span class="version">V2.0.5 · 浏览器版</span>
+    <span class="version">V2.0.6 · 浏览器版</span>
   </div>
 
   <div class="card">
@@ -441,7 +492,7 @@
       <button id="choosePathBtn" type="button" onclick="chooseTargetDirectory()">📂 选择位置</button>
       <button id="closeDupBtn" type="button" onclick="openDuplicateCleaner()">🧹 关闭重复</button>
     </div>
-    <span class="helper-text">浏览器安全机制不允许输入本机完整路径；需要手输/粘贴路径、自动记忆和创建后打开时，请使用 HTA 本地版。</span>
+    <span class="helper-text">浏览器安全机制不允许输入本机完整路径，也无法启动资源管理器；创建后点击结果/状态会复制名称并给出说明。需要手输/粘贴路径、自动记忆和「点击即打开」时，请使用 HTA 本地版。</span>
 
     <div class="btn-group">
       <button id="generateBtn" type="button" onclick="generateFolderName()">✨ 生成名称</button>
@@ -458,13 +509,23 @@
       </div>
     </div>
 
-    <div id="result"></div>
-    <div id="createStatus" class="create-status"></div>
+    <div id="result" onclick="openClickableResult(this)"></div>
+    <div id="createStatus" class="create-status" onclick="openClickableResult(this)"></div>
+    <div id="openHint" class="open-hint">
+      <div>⚠️ <strong>浏览器安全沙箱无法启动资源管理器</strong>，网页版做不到真正的「一键打开文件夹」。</div>
+      <div>已自动为你复制文件夹名称，可在资源管理器中按名称搜索定位；需要点击即打开，请使用 <strong>HTA 本地版</strong>（与本机文件放同一目录，双击即可运行）。</div>
+      <div class="hint-actions">
+        <button type="button" onclick="copyCreatedName(true)">📋 复制名称</button>
+        <a href="https://kuguahahaha.github.io/folder-name-helper/versions/index.html" target="_blank" rel="noopener">⬇️ 下载 HTA 本地版</a>
+        <button type="button" onclick="hideOpenHint()">✖ 收起</button>
+      </div>
+    </div>
   </div>
 
   <details class="changelog">
     <summary>📦 更新日志 <span style="font-weight:normal;font-size:0.85rem;color:#6c757d;margin-left:6px">▼</span></summary>
     <ul>
+      <li><span class="tag">V2.0.6</span> <strong>创建后可点击结果打开</strong>：新建成功（或同名目录已存在）后，结果名称与创建状态变为可点击链接；<strong>HTA 本地版</strong>直接调用资源管理器打开该目录，<strong>浏览器版</strong>因安全沙箱无法启动资源管理器，改为点击自动复制名称并展开说明与 HTA 下载入口；重新生成名称、创建失败或重置时自动撤销可点击状态</li>
       <li><span class="tag">V2.0.5</span> <strong>修复时间固定问题</strong>：页面长时间挂机后，留空的日期/时间改为在点击「生成名称 / 新建文件夹」那一刻实时读取系统时间，不再固定为打开页面时的值</li>
       <li><span class="tag">V2.0.5</span> <strong>关闭重复文件夹</strong>：目标位置右侧新增「🧹 关闭重复」按钮（仅 HTA 本地版支持，浏览器版点击会提示）</li>
       <li><span class="tag">V2.0.5</span> <strong>检查更新与切换版本</strong>：HTA 版更新日志区新增「检查更新 / 切换版本」按钮（本地版本管理与在线更新，浏览器版不适用）</li>
@@ -497,6 +558,8 @@
     let selectedDirectoryHandle = null;
     let favorites = [];
     let toastTimer = null;
+    /* v2.0.6：最近一次成功创建（或已存在）的文件夹名称 */
+    let lastCreatedName = '';
 
     document.getElementById('projectInput').addEventListener('keypress', function (event) {
       if (event.key === 'Enter' || event.keyCode === 13) {
@@ -612,6 +675,9 @@
       result.textContent = folderName;
       result.style.display = 'block';
       document.getElementById('copyBtn').style.display = 'inline-flex';
+      /* v2.0.6：新名称尚未创建，撤销上一次的「可点击打开」状态 */
+      lastCreatedName = '';
+      syncOpenableState();
     }
 
     function generateFolderName() {
@@ -619,6 +685,53 @@
       if (!folderName) return null;
       renderFolderName(folderName);
       return folderName;
+    }
+
+    /* ===== v2.0.6：创建后点击结果 / 状态文字 ===== */
+    function setOpenable(el, on) {
+      if (!el) return;
+      el.classList.toggle('openable', on);
+      if (on) el.title = '点击复制名称并查看打开方式（浏览器版无法直接启动资源管理器）';
+      else el.removeAttribute('title');
+    }
+
+    function syncOpenableState() {
+      const on = !!lastCreatedName;
+      setOpenable(document.getElementById('result'), on);
+      setOpenable(document.getElementById('createStatus'), on);
+      if (!on) hideOpenHint();
+    }
+
+    function hideOpenHint() {
+      const hint = document.getElementById('openHint');
+      if (hint) hint.style.display = 'none';
+    }
+
+    async function copyCreatedName(withToast) {
+      const text = lastCreatedName || document.getElementById('result').textContent;
+      let ok = false;
+      if (text) {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+            ok = true;
+          } else {
+            ok = fallbackCopy(text);
+          }
+        } catch (error) {
+          ok = fallbackCopy(text);
+        }
+      }
+      if (withToast) showToast(ok ? '已复制文件夹名称' : '复制失败，请手动复制', ok ? 'success' : 'warning');
+      return ok;
+    }
+
+    function openClickableResult(el) {
+      if (!el || !el.classList.contains('openable')) return;
+      /* 浏览器无法启动资源管理器：复制名称 + 说明限制 + 给出 HTA 入口 */
+      document.getElementById('openHint').style.display = 'block';
+      copyCreatedName(false);
+      showToast('已复制名称；浏览器版无法直接打开，请看下方提示', 'warning');
     }
 
     function supportsDirectoryPicker() {
@@ -833,6 +946,8 @@
 
         try {
           await handle.getDirectoryHandle(folderName);
+          /* v2.0.6：同名目录已存在，也允许点击结果 / 状态查看打开方式 */
+          lastCreatedName = folderName;
           showCreateStatus(`目标目录中已存在：${folderName}`, true);
           showToast('同名文件夹已存在，未重复创建', 'warning');
           return;
@@ -841,9 +956,11 @@
         }
 
         await handle.getDirectoryHandle(folderName, { create: true });
+        lastCreatedName = folderName;
         showCreateStatus(`已在“${handle.name}”中创建：${folderName}`, false);
         showToast('文件夹创建成功', 'success');
       } catch (error) {
+        lastCreatedName = '';
         showCreateStatus(`创建失败：${error.message || error}`, true);
         showToast('创建失败，请检查目录权限或改用 HTA 本地版', 'error');
       }
@@ -854,6 +971,7 @@
       status.textContent = message;
       status.className = `create-status${isWarning ? ' warning' : ''}`;
       status.style.display = 'block';
+      syncOpenableState();
     }
 
     function resetForm() {
@@ -863,6 +981,8 @@
       document.getElementById('result').style.display = 'none';
       document.getElementById('copyBtn').style.display = 'none';
       document.getElementById('createStatus').style.display = 'none';
+      lastCreatedName = '';
+      syncOpenableState();
       document.getElementById('dateInput').focus();
       showToast('已重置命名内容，目标位置与收藏保持不变', 'success');
     }
